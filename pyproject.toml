@@ -6,8 +6,35 @@ build-backend = "setuptools.build_meta"
 name = "seanimation"
 version = "0.7.1"
 description = "Beat-synchrone Musik-Visuals für Windows 11 (Python + OpenGL)"
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-only" }
+authors = [{ name = "thesepix" }]
+keywords = [
+    "music-visualization",
+    "beat-detection",
+    "opengl",
+    "moderngl",
+    "pyglet",
+    "wasapi",
+    "windows",
+    "obs",
+    "dj",
+    "traktor",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Multimedia :: Video",
+]
 dependencies = [
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
@@ -22,6 +49,11 @@ dependencies = [
 
 [project.scripts]
 seanimation = "seanimation.main:main"
+
+[project.urls]
+Repository = "https://github.com/thesepix/SeAnimation"
+Issues = "https://github.com/thesepix/SeAnimation/issues"
+Releases = "https://github.com/thesepix/SeAnimation/releases"
 
 [tool.setuptools.packages.find]
 include = ["seanimation*"]

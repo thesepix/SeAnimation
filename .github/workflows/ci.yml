@@ -1,7 +1,7 @@
 name: ci
 
-# push-Trigger absichtlich weggelassen: Läuft über pull_request (PR #1 ist offen)
-# und workflow_dispatch — sonst würde der Bot-Push auf dist-exe endlos retriggern.
+# push-Trigger absichtlich weggelassen: Läuft über pull_request und
+# workflow_dispatch — sonst würde der Bot-Push auf dist-exe endlos retriggern.
 on:
   pull_request:
   workflow_dispatch:

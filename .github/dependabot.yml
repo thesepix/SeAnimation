@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    # requirements.txt ist das Install-Manifest; pyproject.toml spiegelt die
+    # gleichen Dependencies (beim Bump beide anfassen, siehe CONTRIBUTING.md).
+    allow:
+      - dependency-type: "direct"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
