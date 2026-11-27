@@ -46,6 +46,7 @@ class App:
             pending_effect_idx=None,
             clip_player=None,
             clip_path=None,
+            pending_clip_override=None,  # per Thumbnail-Klick gewählter Clip
             audio_error=None,
             running=True,
         )
@@ -177,12 +178,17 @@ class App:
             self.state.clip_player = None  # reiner Shader-Hintergrund
 
     def _apply_clip(self, kind: str) -> None:
-        clip = self.library.next_clip(kind)
+        clip = self.state.pending_clip_override
+        if clip is not None:
+            self.state.pending_clip_override = None
+        else:
+            clip = self.library.next_clip(kind)
         if clip is None:
             print(f"  [app] kein {kind}-Clip in {self.media_dir} — Fallback: Hintergrund")
             self.state.clip_player = None
             return
-        self.state.clip_player = ClipPlayer(clip.path, frames_per_beat=config.FRAMES_PER_BEAT)
+        # prefetch=True: Decode läuft im Hintergrund-Thread (Default False, damit sync-Tests einen Thread haben)
+        self.state.clip_player = ClipPlayer(clip.path, frames_per_beat=config.FRAMES_PER_BEAT, prefetch=True)
         self.state.clip_path = str(clip.path)
         print(f"  [app] Clip: {clip.path.name} ({kind})")
 
@@ -214,33 +220,35 @@ class App:
     def on_mouse_press(self, x, y, button, modifiers) -> bool:
         if self.ui is None:
             return False
-        if self.ui.hit_tap(x, y):
+        action = self.ui.hit(x, y)  # GL-Koordinaten, y bottom-up wie pyglet-Maus
+        if not action:
+            return False
+        kind = action[0]
+        if kind == "tap":
             self.tracker.tap(self.state.last_time)
             print(f"  [TAP] bpm={self.tracker.bpm:.1f}")
             return True
-        idx = self.ui.hit_effect(x, y)
-        if idx is not None:
-            self.state.pending_effect_idx = idx
+        if kind == "effect":
+            self.state.pending_effect_idx = action[1]
+            return True
+        if kind == "clip":
+            clip = action[1]
+            self.state.pending_clip_override = clip
+            for i in range(len(self.effects)):
+                if self.effects.get(i)["kind"] == "clip_video":
+                    self.state.pending_effect_idx = i
+                    break
+            print(f"  [app] Clip per Klick gewählt: {clip.path.name} (aktiv auf nächstem Beat)")
+            return True
+        if kind == "page":
+            self.ui.page += action[1]
             return True
         return False
 
     # ---------- Loop ----------
     def _on_draw_preview(self) -> None:
-        import moderngl
-
-        win = self.renderer.preview
-        self.renderer._safe_render_gl(win)  # macht switch_to + rendert GL
-        # UI zeichnen: pyglet-Kontext current machen + GL-State zurücksetzen
-        win.switch_to()
-        self.renderer.gl[win].ctx.disable(moderngl.BLEND)
-        try:
-            self.ui.draw()  # UI über GL
-        except Exception:
-            if not self.renderer._gl_error_printed:
-                import traceback
-
-                traceback.print_exc()
-                self.renderer._gl_error_printed = True
+        # rendert GL + GL-UI (UI zeichnet der Renderer fürs Preview)
+        self.renderer._safe_render_gl(self.renderer.preview)
 
     def run(self) -> None:
         import pyglet
@@ -254,7 +262,8 @@ class App:
         self.state.active_effect = self.effects.get(0)
         self._apply_effect()
         self.renderer = Renderer(self.state, config.PREVIEW_SIZE, config.OUTPUT_SIZE)
-        self.ui = UI(self, self.renderer.preview)
+        self.ui = UI(self, self.renderer)
+        self.renderer.ui = self.ui  # Renderer zeichnet UI im Preview
         for w in (self.renderer.preview, self.renderer.output):
             w.push_handlers(on_key_press=self.on_key_press, on_mouse_press=self.on_mouse_press)
         # Preview rendert GL + UI in einem Handler (push_handlers = dokumentierter Weg)

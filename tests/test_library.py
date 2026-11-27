@@ -70,6 +70,23 @@ class TestClipPlayer(unittest.TestCase):
         self.assertEqual(f2.shape, f0.shape)
         p.close()
 
+    def test_prefetch_thread(self):
+        # Prefetch-Decode im Hintergrund: nach kurzer Zeit ist latest_frame() da,
+        # Y-geflipped und auf max 720p downscaled
+        import time
+
+        p = ClipPlayer(self.vid, frames_per_beat=0, prefetch=True)
+        deadline = time.time() + 3.0
+        while p.latest_frame() is None and time.time() < deadline:
+            time.sleep(0.05)
+        f = p.latest_frame()
+        self.assertIsNotNone(f)
+        self.assertEqual(f.shape[2], 4)
+        self.assertLessEqual(f.shape[0], 720)
+        self.assertTrue(p._flipped)
+        self.assertGreater(p.frame_seq, 0)
+        p.close()
+
     def test_image(self):
         p = ClipPlayer(self.img)
         self.assertEqual(p.kind, "image")
@@ -107,6 +124,17 @@ class TestLibrary(unittest.TestCase):
             lib = Library(tmp)
             self.assertEqual(lib.scan(), [])
             self.assertIsNone(lib.next_clip())
+
+
+class TestGUIText(unittest.TestCase):
+    def test_text_rgba(self):
+        from seanimation.ui.ui import text_rgba
+
+        arr = text_rgba("124.0 BPM", 22)
+        self.assertEqual(arr.shape[2], 4)
+        self.assertGreater(arr.shape[0], 5)
+        self.assertGreater(arr.shape[1], 10)
+        self.assertGreater(int(arr[..., 3].max()), 0)  # sichtbare Pixel da
 
 
 class TestEffects(unittest.TestCase):

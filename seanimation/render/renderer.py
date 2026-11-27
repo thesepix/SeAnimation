@@ -61,6 +61,7 @@ class _WindowGL:
         self.vao_overlay = self.ctx.simple_vertex_array(self.prog_overlay, self.vbo, "in_vert")
         self.clip_tex = None
         self.clip_tex_size = None
+        self.clip_seq = -1  # zuletzt hochgeladenes Frame (Upload-Skip bei Bildern)
 
 
 class Renderer:
@@ -88,6 +89,8 @@ class Renderer:
                 pass
         self._gl_error_printed = False
         self._last_now = 0.0
+
+        self.ui = None  # wird von der App gesetzt (GL-UI)
 
         # Draw-Handler: push_handlers ist der dokumentierte Weg (pyglet 2.x);
         # preview.on_draw setzt die App selbst (GL + UI zusammen)
@@ -142,15 +145,16 @@ class Renderer:
         kind = eff.get("kind", "bg")
 
         # Basis-Layer
-        if kind.startswith("clip_") and st.clip_player is not None:
-            cp = st.clip_player
+        cp = st.clip_player if kind.startswith("clip_") else None
+        frame = None
+        if cp is not None:
             if cp.frames_per_beat > 0:
-                frame = cp.get_frame(beat_no)  # Frame-Step: Änderung nur auf dem Beat
+                frame = cp.get_frame(beat_no)  # Frame-Step (optional)
             else:
-                dt = min(max(now - self._last_now, 0.0), 0.1)  # Smooth: flüssig weiter
-                frame = cp.read_smooth(dt)
+                frame = cp.latest_frame()      # Smooth: neuestes Prefetch-Frame
             self._last_now = now
-            self._update_clip_texture(g, frame)
+        if frame is not None:
+            self._update_clip_texture(g, frame, cp.frame_seq, flip=not cp._flipped)
             prog = g.prog_clip
             _set(prog, "u_tex", 0)
             _set(prog, "u_res", (win.width, win.height))
@@ -188,16 +192,32 @@ class Renderer:
         g.vao_overlay.render(moderngl.TRIANGLES)
         ctx.disable(moderngl.BLEND)
 
-    def _update_clip_texture(self, g: _WindowGL, frame: np.ndarray) -> None:
-        # Y-Flip: cv2/PIL liefern top-down, OpenGL erwartet bottom-up (sonst kopfstehend)
-        frame = np.ascontiguousarray(frame[::-1])
+        # UI nur im Preview, und nur wenn Frames da sind (GL-UI über moderngl)
+        if win is self.preview and self.ui is not None:
+            try:
+                self.ui.draw(g, win.width, win.height)
+            except Exception:
+                if not self._gl_error_printed:
+                    import traceback
+
+                    traceback.print_exc()
+                    self._gl_error_printed = True
+
+    def _update_clip_texture(self, g: _WindowGL, frame: np.ndarray, seq: int, flip: bool = True) -> None:
+        # Y-Flip nur wenn nicht schon im Prefetch-Thread passiert (cv2/PIL top-down, GL bottom-up)
+        if flip:
+            frame = np.ascontiguousarray(frame[::-1])
+        if seq == g.clip_seq:
+            g.clip_tex.use(0)
+            return  # unverändertes Frame (Bild) nicht erneut hochladen
         h, w = frame.shape[:2]
         if g.clip_tex is None or g.clip_tex_size != (w, h):
             if g.clip_tex is not None:
                 g.clip_tex.release()
-            g.clip_tex = g.ctx.texture((w, h), 4, frame.tobytes())
+            g.clip_tex = g.ctx.texture((w, h), 4, frame)  # ndarray direkt, ohne tobytes-Kopie
             g.clip_tex_size = (w, h)
             g.clip_tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
         else:
-            g.clip_tex.write(frame.tobytes())
+            g.clip_tex.write(frame)
+        g.clip_seq = seq
         g.clip_tex.use(0)

@@ -70,13 +70,14 @@ bzw. mit `--file` eine Datei in Echtzeit:
 
 ```powershell
 .\SeAnimation-0.4.0.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
-.\SeAnimation-0.5.0.exe --file <dein-track.mp3>
+.\SeAnimation-0.7.0.exe --file <dein-track.mp3>
 ```
 
-- **Preview-Fenster**: BPM/Beat-Anzeige, Effektliste (klickbar oder Tasten **1–5**),
-  **TAP-Button** (Taste **T**) als Fallback wenn die Erkennung nicht greift
+- **Preview-Fenster (alles klickbar)**: BPM/Beat-Anzeige, **TAP-Button** (Taste **T**),
+  Effektliste (Tasten **1–9**), **Thumbnail-Raster aller Clips aus `media/`** mit Seiten
+  (Klick auf Thumbnail = Clip sofort aktiv, Wechsel quantisiert auf Beat)
 - **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
-- **Space** = nächster Effekt (quantisiert auf Beat), **ESC** = Ende
+- **Space** = nächster Effekt (quantisiert auf Beat), Clip-Wechsel automatisch alle 4 Takte, **ESC** = Ende
 - Clips (Bilder/Videos) liegen im Ordner **`media/` neben der Exe** (z. B.
   `C:\Desktop\SeAnimation\media\`) und werden beim Start gescannt
 
