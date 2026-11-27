@@ -1,0 +1,50 @@
+name: release
+
+# Läuft bei jedem annotated Tag vX.Y.Z: baut die Windows-Exe und hängt sie an
+# ein GitHub Release. Fallback bei Artifact/Storage-Quota: Exe auf Branch dist-exe.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt pyinstaller
+      - run: pyinstaller seanimation.spec --clean --noconfirm
+      - name: Exe-Größe anzeigen
+        shell: pwsh
+        run: |
+          $f = Get-ChildItem dist\SeAnimation-*.exe
+          Write-Host ("{0}: {1:N1} MB" -f $f.Name, ($f.Length / 1MB))
+      # Primär: GitHub Release mit Exe als Asset (kann am Storage-Quota scheitern)
+      - name: GitHub Release erstellen + Exe anhängen
+        id: rel
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/SeAnimation-*.exe
+          generate_release_notes: true
+      # Fallback: Exe auf Branch dist-exe pushen (git-Speicher statt Artifact-Quota)
+      - name: Fallback — Exe auf Branch dist-exe pushen
+        if: steps.rel.outcome == 'failure'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem dist\SeAnimation-*.exe
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin dist-exe 2>$null
+          if ($LASTEXITCODE -eq 0) { git checkout -B dist-exe origin/dist-exe } else { git checkout -b dist-exe }
+          New-Item -ItemType Directory -Force -Path bin | Out-Null
+          Copy-Item $exe "bin\$($exe.Name)" -Force
+          git add bin/
+          git commit -m "release $env:GITHUB_REF_NAME : $($exe.Name)" || Write-Host "nichts Neues"
+          git push origin dist-exe
+          Write-Host "Exe liegt auf Branch dist-exe: bin/$($exe.Name) (Tag $env:GITHUB_REF_NAME)"
