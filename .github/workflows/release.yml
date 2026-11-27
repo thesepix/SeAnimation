@@ -28,7 +28,7 @@ jobs:
       - name: GitHub Release erstellen + Exe anhängen
         id: rel
         continue-on-error: true
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/SeAnimation-*.exe
           generate_release_notes: true
