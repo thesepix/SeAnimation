@@ -65,7 +65,9 @@ class WasapiLoopbackSource(AudioSource):
             self.device_label = str(device.GetFriendlyName())
         except Exception:
             pass
-        client = device.Activate(IAudioClient, CLSCTX_ALL, None)
+        # comtypes: REFIID-Parameter als GUID-Instanz übergeben (Interface._iid_),
+        # dann liefert comtypes automatisch den passend typisierten Pointer zurück
+        client = device.Activate(IAudioClient._iid_, CLSCTX_ALL, None)
         fmt = client.GetMixFormat()  # POINTER(WAVEFORMATEX)
         self.samplerate = int(fmt.nSamplesPerSec)
         self.channels = int(fmt.nChannels)
@@ -79,7 +81,7 @@ class WasapiLoopbackSource(AudioSource):
             fmt,
             None,
         )
-        capture = client.GetService(IAudioCaptureClient)
+        capture = client.GetService(IAudioCaptureClient._iid_)
         client.Start()
         self._stop = False
 
