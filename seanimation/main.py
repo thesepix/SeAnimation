@@ -40,7 +40,18 @@ def main() -> None:
         default=124.0,
         help="BPM der Synth-Quelle (nur mit --selftest relevant)",
     )
+    parser.add_argument(
+        "--tap",
+        action="store_true",
+        help="Beat-Tap-Modus: Enter tappt den Beat (überschreibt die Erkennung für 8 s), q = Ende",
+    )
     args = parser.parse_args()
+
+    if args.tap:
+        from .devtest import run_tap_mode
+
+        run_tap_mode(args.audio_file)
+        return
 
     if args.selftest:
         from .devtest import run_selftest

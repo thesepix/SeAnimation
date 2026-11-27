@@ -167,6 +167,57 @@ class TestWavFileSource(unittest.TestCase):
             os.unlink(path)
 
 
+class TestBeatTap(unittest.TestCase):
+    def test_tap_sets_tempo_and_phase(self):
+        tr = BeatTracker(samplerate=48000)
+        period = 60.0 / 120.0
+        t0 = 1.0
+        state = None
+        for i in range(6):
+            tr.tap(t0 + i * period)
+            state = tr.update({"onset": 0.0, "kick": 0.0}, t0 + i * period + 0.01)
+        self.assertAlmostEqual(tr.bpm, 120.0, delta=2.0)
+        self.assertGreater(state.beat_number, 3)
+        # Phase direkt nach dem Tap ~0
+        self.assertLess(state.phase, 0.2)
+
+    def test_tap_overrides_detection(self):
+        # Synth läuft mit 124 BPM, User tappt aber 100 BPM -> im Manual-Modus gewinnt der Tap
+        sig = SynthSource(bpm=124.0, samplerate=48000, duration=6.0, realtime=False).generate()
+        analyzer = Analyzer(samplerate=48000)
+        tracker = BeatTracker(samplerate=48000)
+        taps = [1.0 + i * 0.6 for i in range(9)]  # 100 BPM
+        ti = 0
+        for i in range(0, sig.size, 512):
+            for f in analyzer.process(sig[i : i + 512]):
+                now = f["time"]
+                if ti < len(taps) and now >= taps[ti]:
+                    tracker.tap(now)
+                    ti += 1
+                tracker.update(f, now)
+        self.assertAlmostEqual(tracker.bpm, 100.0, delta=5.0)
+
+    def test_detection_resumes_after_tap_timeout(self):
+        # Nach 8 s ohne Tap übernimmt die Erkennung wieder
+        tr = BeatTracker(samplerate=48000)
+        tr.tap(1.0)
+        tr.tap(1.5)  # 120 BPM manuell
+        self.assertAlmostEqual(tr.bpm, 120.0, delta=2.0)
+        # nach manual_until: synthetische Onsets bei 150 BPM (Ruhe dazwischen,
+        # damit der adaptive Schwellwert greift)
+        period = 60.0 / 150.0
+        t = 20.0
+        last_spike = t
+        for i in range(12):
+            for _ in range(6):  # Ruhe-Frames, damit der adaptive Schwellwert greift
+                t += 0.01
+                tr.update({"onset": 0.0, "kick": 0.0}, t)
+            t = last_spike + period  # Spike exakt im 150-BPM-Abstand
+            tr.update({"onset": 1.0, "kick": 1.0}, t)
+            last_spike = t
+        self.assertAlmostEqual(tr.bpm, 150.0, delta=8.0)
+
+
 @unittest.skipUnless(HAS_SOUNDFILE, "soundfile nicht installiert")
 class TestAudioFileSource(unittest.TestCase):
     def test_load_flac(self):

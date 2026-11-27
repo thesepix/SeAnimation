@@ -1,4 +1,4 @@
-# Baut die standalone Exe: dist\SeAnimation.exe (onefile)
+# Baut die standalone Exe: dist\SeAnimation-vX.Y.Z.exe (onefile, Version aus __init__.py)
 #
 # Einmalig auf dem Build-PC nötig: Python 3.11+ von python.org installieren
 # (NICHT über den Microsoft Store — dort fehlt pip), dabei den Haken
@@ -14,5 +14,6 @@ python -m venv .venv
 pip install -r requirements.txt pyinstaller
 pyinstaller seanimation.spec --clean --noconfirm
 
-Write-Host "Fertig: dist\SeAnimation.exe"
-Write-Host "Test:  .\dist\SeAnimation.exe --selftest"
+$exe = Get-ChildItem dist\SeAnimation-*.exe
+Write-Host ("Fertig: dist\" + $exe.Name)
+Write-Host ("Test:  .\dist\" + $exe.Name + " --selftest")

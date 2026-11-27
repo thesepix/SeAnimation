@@ -3,4 +3,4 @@
 Siehe ANFORDERUNGEN.md im Repo-Root für das vollständige Anforderungsdokument.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

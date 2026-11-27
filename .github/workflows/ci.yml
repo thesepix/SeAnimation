@@ -37,8 +37,8 @@ jobs:
       - name: Exe-Größe anzeigen
         shell: pwsh
         run: |
-          $f = Get-Item dist\SeAnimation.exe
-          Write-Host ("SeAnimation.exe: {0:N1} MB" -f ($f.Length / 1MB))
+          $f = Get-ChildItem dist\SeAnimation-*.exe
+          Write-Host ("{0}: {1:N1} MB" -f $f.Name, ($f.Length / 1MB))
       # Primär: Artefakt. Kann am Account-Quota scheitern -> continue-on-error,
       # damit der Job grün bleibt; der Fallback-Step greift dann über outcome.
       - name: Upload als Artefakt SeAnimation-win64
@@ -57,7 +57,8 @@ jobs:
         if: steps.upload.outcome == 'failure'
         shell: pwsh
         run: |
-          $size = (Get-Item dist\SeAnimation.exe).Length
+          $exe = Get-ChildItem dist\SeAnimation-*.exe
+          $size = $exe.Length
           if ($size -gt 90MB) {
             Write-Host "::warning::Exe zu groß für git-Fallback ($size Bytes, Limit 100 MB) — nur Artefakt möglich"
             exit 0
@@ -67,8 +68,9 @@ jobs:
           git fetch origin dist-exe 2>$null
           if ($LASTEXITCODE -eq 0) { git checkout -B dist-exe origin/dist-exe } else { git checkout -b dist-exe }
           New-Item -ItemType Directory -Force -Path bin | Out-Null
-          Copy-Item dist\SeAnimation.exe bin\SeAnimation.exe -Force
-          git add bin/SeAnimation.exe
-          git commit -m "ci: SeAnimation.exe (build $env:GITHUB_SHA)" || Write-Host "nichts Neues zu committen"
+          Copy-Item $exe "bin\$($exe.Name)" -Force          # versionierter Name: SeAnimation-vX.Y.Z.exe
+          Copy-Item $exe "bin\SeAnimation.exe" -Force         # latest-Alias
+          git add bin/
+          git commit -m "ci: $($exe.Name) (build $env:GITHUB_SHA)" || Write-Host "nichts Neues zu committen"
           git push origin dist-exe
-          Write-Host "Exe liegt auf Branch dist-exe: bin/SeAnimation.exe"
+          Write-Host "Exe liegt auf Branch dist-exe: bin/$($exe.Name) und bin/SeAnimation.exe (latest)"

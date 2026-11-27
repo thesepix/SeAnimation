@@ -79,6 +79,10 @@ class BeatTracker:
         self._last_onset_time: float | None = None
         self._last_kick_onset_time = -1e9
         self._intervals: deque[float] = deque(maxlen=12)
+        # Beat-Tap (A12): manueller Modus überschreibt die Auto-Erkennung
+        self.manual_until = 0.0
+        self._last_tap_time: float | None = None
+        self._tap_intervals: deque[float] = deque(maxlen=8)
         self._flux_window: deque[float] = deque(maxlen=48)  # ~0,5 s bei hop=512/48 kHz
         self._kick_window: deque[float] = deque(maxlen=48)
         self._refractory = 0.2  # s zwischen zwei Onsets (Periode bei 200 BPM = 0,3 s)
@@ -94,10 +98,11 @@ class BeatTracker:
         self._flux_window.append(flux)
         self._kick_window.append(kick)
 
+        manual = now < self.manual_until  # Beat-Tap aktiv -> Auto-Erkennung pausiert
         refractory_ok = (now - self._last_event_time) >= self._refractory
         kick_onset = refractory_ok and self._detect(self._kick_window, kick)
         flux_onset = refractory_ok and self._detect(self._flux_window, flux)
-        if kick_onset or flux_onset:
+        if (kick_onset or flux_onset) and not manual:
             self._last_event_time = now
             self._register_tempo(now)
             if kick_onset:
@@ -155,6 +160,37 @@ class BeatTracker:
             else:
                 self.period = cand
         self._last_onset_time = t
+
+    def tap(self, now: float) -> None:
+        """Manueller Beat-Tap (A12): Tempo + Phase aus den Tap-Intervallen setzen.
+
+        Überschreibt die Auto-Erkennung für 8 s (manual_until); danach greift
+        die Erkennung wieder von selbst. Wird vom UI-Button bzw. CLI --tap gerufen.
+        """
+        self.manual_until = now + 8.0
+        if self._last_tap_time is not None:
+            interval = now - self._last_tap_time
+            if interval > 0:
+                cand = interval
+                while cand > self.max_period:
+                    cand /= 2.0
+                while cand < self.min_period:
+                    cand *= 2.0
+                self._tap_intervals.append(cand)
+                if len(self._tap_intervals) >= 2:
+                    target = float(np.median(self._tap_intervals))
+                    self.period = 0.5 * self.period + 0.5 * target  # schnell an Taps anpassen
+        self._last_tap_time = now
+        # Phase auf den Tap snappen + zählen (mit Offbeat-Schutz)
+        if self._next_beat_time is None:
+            self._last_beat_time = now
+            self._next_beat_time = now + self.period
+            return
+        if now - self._last_counted >= 0.55 * self.period:
+            self._beat_number += 1
+            self._last_counted = now
+        self._last_beat_time = now
+        self._next_beat_time = now + self.period
 
     def _snap_phase(self, t: float) -> None:
         """PLL-artiger Snap: Fehler zyklisch falten; bei |err| <= 0.45*period das

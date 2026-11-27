@@ -113,3 +113,69 @@ def run_file_analysis(path, realtime: bool = False, verbose: bool = True, max_be
 
 # Rückwärtskompatibler Alias (alt: --wav)
 run_wav_analysis = run_file_analysis
+
+
+def run_tap_mode(path=None, verbose: bool = True) -> dict:
+    """Interaktiver Beat-Tap (A12): Enter = Tap im Takt, q = Ende.
+
+    Mit --file wird die Datei in Echtzeit gestreamt (zum Mitverfolgen), ohne
+    Datei wird nur getappt. Der Tap überschreibt die Auto-Erkennung für 8 s.
+    Aufruf: python -m seanimation --tap [--file track.flac]
+    """
+    import sys
+    import threading
+    import time
+
+    from .analysis.beat import BeatTracker
+
+    tracker = BeatTracker(samplerate=48000)
+    analyzer = Analyzer(samplerate=48000)
+    stop = threading.Event()
+    t0 = time.monotonic()
+
+    def tap_reader() -> None:
+        for line in sys.stdin:
+            if line.strip().lower() in ("q", "quit", "exit"):
+                stop.set()
+                return
+            now = time.monotonic() - t0
+            tracker.tap(now)
+            if verbose:
+                print(f"  tap @ {now:7.3f}s -> bpm={tracker.bpm:6.1f}")
+
+    threading.Thread(target=tap_reader, daemon=True).start()
+    if verbose:
+        print("Beat-Tap-Modus: Enter = Tap im Takt, q = Ende" +
+              (f" (Datei: {path})" if path else ""))
+
+    src = None
+    q: "queue.Queue | None" = None
+    if path:
+        src = _make_file_source(path, realtime=True)
+        src.ensure_loaded()
+        analyzer = Analyzer(samplerate=src.samplerate)
+        q = queue.Queue()
+        src.start(q)
+
+    last_beat = -1
+    while not stop.is_set():
+        if q is not None:
+            try:
+                block = q.get(timeout=0.2)
+            except queue.Empty:
+                continue
+            now = time.monotonic() - t0
+            for features in analyzer.process(block):
+                st = tracker.update(features, now)
+                if st.beat_number != last_beat:
+                    last_beat = st.beat_number
+                    if verbose:
+                        print(f"  beat {st.beat_number:4d}  bpm={st.bpm:6.1f}  phase={st.phase:.2f}"
+                              + ("  BAR" if st.is_bar else "") + ("  [TAP]" if now < tracker.manual_until else ""))
+        else:
+            time.sleep(0.05)
+    if src is not None:
+        src.stop()
+    if verbose:
+        print(f"Ende: bpm={tracker.bpm:.2f}, beats={tracker._beat_number}")
+    return {"bpm": tracker.bpm, "beats": tracker._beat_number}
