@@ -1,8 +1,12 @@
-"""WASAPI-Loopback-Quelle via sounddevice (PortAudio).
+"""WASAPI-Loopback-Quelle via sounddevice (PortAudio) (A1).
 
-Unter Windows erscheinen Loopback-Geräte ("... (loopback)") im WASAPI-Host-API
-und werden von sounddevice automatisch gelistet. `device=None` wählt das
-System-Default-Gerät (A1, Abschnitt 2).
+Nimmt auf, was der PC abspielt (System-Mix / "Was du hörst"). Unter Windows
+erscheinen Loopback-Geräte ("... (loopback)") im WASAPI-Host-API und werden von
+sounddevice automatisch gelistet — siehe `source.list_input_devices()`.
+`device=None` wählt das System-Default-Gerät (Abschnitt 2).
+
+sounddevice wird lazy in `start()` importiert, damit das Modul auch ohne
+installierte Audio-Bibliothek importierbar bleibt (z. B. für Headless-Tests).
 """
 
 from __future__ import annotations
@@ -16,8 +20,6 @@ from .source import AudioSource
 
 
 class LoopbackSource(AudioSource):
-    """Nimmt auf, was der PC abspielt (System-Mix / "Was du hörst")."""
-
     def __init__(
         self,
         device: Optional[int] = None,
@@ -32,10 +34,25 @@ class LoopbackSource(AudioSource):
         self._stream = None
 
     def start(self, out_queue: "queue.Queue[np.ndarray]") -> None:
-        # TODO(MVP): sd.InputStream(device=self.device, ...) mit Callback,
-        # der indata.copy() in out_queue legt; Latenz klein wählen (~20 ms).
-        raise NotImplementedError
+        import sounddevice as sd
+
+        def callback(indata, frames, time_info, status):
+            # indata: (frames, channels) float32 — Block in die Queue legen
+            out_queue.put(indata.copy())
+
+        self._stream = sd.InputStream(
+            device=self.device,
+            channels=self.channels,
+            samplerate=self.samplerate,
+            blocksize=self.blocksize,
+            dtype="float32",
+            latency="low",  # niedrige Latenz (N1: Audio->Bild < ~100 ms)
+            callback=callback,
+        )
+        self._stream.start()
 
     def stop(self) -> None:
-        # TODO(MVP): Stream stoppen/schließen.
-        raise NotImplementedError
+        if self._stream is not None:
+            self._stream.stop()
+            self._stream.close()
+            self._stream = None

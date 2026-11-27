@@ -38,7 +38,9 @@ in einem eigenen randlosen Fenster (Vollbild / OBS-Einbindung).
 
 ### 3.2 Audio-Analyse (A3–A4)
 - **A3** Spektrum per FFT in Bändern (Bass / Mitten / Höhen) + Onset-Erkennung.
-- **A4** Beat- und Tempo-Erkennung aus dem Signal: BPM + Beat-Phase pro Frame.
+- **A4** Beat- und Tempo-Erkennung aus dem Signal: BPM + Beat-Phase pro Frame
+  (Implementierung: numpy — Onset via spektralem Fluss, Tempo aus
+  Inter-Onset-Intervallen, Phase per Snap auf Onsets; aubio/librosa optional in Step 2).
 
 ### 3.3 Beat-Sync-Modell (Kernspezifikation, abgestimmt)
 Das zentrale Versprechen: **das Visuelle passiert im Takt.** Konkret:
@@ -117,10 +119,10 @@ Effects, GLSL-Shader) · `ui/` (UI) · `config.py`, `main.py`.
 
 ## 6. Technologie-Stack
 
-Python 3.11+ mit: **sounddevice** (WASAPI-Loopback), **numpy/scipy** (FFT),
-**aubio** (Beat-Erkennung; Fallback librosa), **opencv-python** + **Pillow**
-(Video-Dekodierung, Thumbnails), **moderngl** + **moderngl-window**
-(OpenGL-Rendering, zwei Fenster, Maus/Tastatur).
+Python 3.11+ mit: **sounddevice** (WASAPI-Loopback), **numpy** (FFT, Band-Energien,
+eigener Beat-/Tempo-Tracker), **opencv-python** + **Pillow** (Video-Dekodierung,
+Thumbnails), **moderngl** + **moderngl-window** (OpenGL-Rendering, zwei Fenster,
+Maus/Tastatur).
 
 Begründung Python: Die schwere Arbeit (FFT, Dekodierung, GL) passiert in
 C-Bibliotheken; Python beschleunigt die Iteration. C#/.NET wäre nur bei
@@ -149,6 +151,9 @@ portierbar.
 - Die Entwicklungs-Sandbox kann die Software **nicht ausführen** (kein Windows/
   Audio/GPU). Testlauf erfolgt auf dem Win11-Desktop-PC:
   `git clone` → `pip install -r requirements.txt` → `python -m seanimation`.
+- Headless-Test der Beat-Pipeline (läuft auch ohne Audiohardware/GPU, z. B. in der
+  Sandbox): `python -m seanimation --selftest` bzw. `python -m unittest discover -s tests`.
+  WAV-Datei als Audioquelle: `python -m seanimation --wav track.wav`.
 - Entwicklungs-Workflow: Branch `vibe/<slug>-1ac69e` in diesem Repo, Änderungen
   als Draft-PR mit sichtbarem Diff; Review auf GitHub, dann Merge.
 - Fehlerbehebung im Kreislauf: Symptom + Konsolenausgabe melden → Fix im PR → Pull.
@@ -167,3 +172,5 @@ portierbar.
 | v1.0 | Audioquelle MVP: Standard-/erstes Windows-Audiogerät (WASAPI-Loopback) |
 | v1.0 | Stack: Python (moderngl-window, sounddevice, numpy/scipy, aubio, opencv, Pillow) |
 | v1.0 | Lieferung ausschließlich über GitHub-PR in `thesepix/SeAnimation` |
+| v1.1 | Beat-Tracker als eigene numpy-Implementierung (Onset-Fluss + IOI-Median + Phasen-Snap); aubio/librosa aus requirements entfernt (Installationsrisiko auf Windows), optional in Step 2 |
+| v1.1 | Testquellen ohne Hardware: `SynthSource` (Kick+Click bei BPM) und `WavFileSource`; Selftest via `python -m seanimation --selftest` |

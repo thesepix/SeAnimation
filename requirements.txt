@@ -3,12 +3,9 @@
 # Audio-Capture: WASAPI-Loopback unter Windows (PortAudio)
 sounddevice>=0.4.6
 
-# Numerik / Spektrum (FFT, Band-Energien)
+# Numerik: FFT, Band-Energien, eigener Beat-/Tempo-Tracker (numpy-only —
+# kein aubio nötig, um Installationsrisiko auf Windows zu vermeiden)
 numpy>=1.26
-scipy>=1.11
-
-# Beat-/Tempo-Erkennung (Fallback: librosa)
-aubio>=0.4.9
 
 # Video-/Bild-Dekodierung und Thumbnails
 opencv-python>=4.8

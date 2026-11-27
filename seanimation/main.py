@@ -4,19 +4,56 @@ Datenfluss (siehe ANFORDERUNGEN.md Abschnitt 5):
 AudioSource -> Ringpuffer -> Analyzer/BeatTracker -> Scheduler
 -> Library (aktive Animation) -> Renderer -> Preview- + Ausgabefenster.
 
-MVP-Stand: Gerüst. Die Einzelmodule sind Stubs, die in den folgenden PRs
-implementiert werden.
+Bisher implementiert: Audio-Quellen (Loopback/Synth/WAV) + Analyzer +
+BeatTracker + Selftest. Renderer/UI folgen in den nächsten PRs.
 """
+
+from __future__ import annotations
+
+import argparse
 
 from . import __version__
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="seanimation",
+        description="SeAnimation – beat-synchrone Musik-Visuals (Windows 11)",
+    )
+    parser.add_argument(
+        "--selftest",
+        action="store_true",
+        help="Beat-Pipeline gegen synthetisches Klick-Signal testen (ohne Audiohardware)",
+    )
+    parser.add_argument(
+        "--wav",
+        metavar="PFAD",
+        default=None,
+        help="WAV-Datei als Audioquelle statt WASAPI-Loopback",
+    )
+    parser.add_argument(
+        "--bpm",
+        type=float,
+        default=124.0,
+        help="BPM der Synth-Quelle (nur mit --selftest relevant)",
+    )
+    args = parser.parse_args()
+
+    if args.selftest:
+        from .devtest import run_selftest
+
+        ok = run_selftest(bpm=args.bpm)
+        raise SystemExit(0 if ok else 1)
+
     print(f"SeAnimation {__version__} – Projektgerüst")
-    print("Modul-Implementierung folgt in den nächsten PRs.")
-    print("Anforderungen: siehe ANFORDERUNGEN.md im Repo-Root.")
-    # TODO(MVP): AudioSource starten, Ringpuffer füllen, Analyzer + BeatTracker
-    # laufen lassen, Scheduler mit Beat-Grid initialisieren, Renderer mit
+    if args.wav:
+        print(f"Audioquelle: WAV-Datei {args.wav}")
+    else:
+        print("Audioquelle: WASAPI-Loopback (Standard-Audiogerät)")
+    print("TODO(MVP): Pipeline starten (Analyzer -> BeatTracker -> Scheduler -> Renderer/UI).")
+    print("Headless-Test: python -m seanimation --selftest | Anforderungen: ANFORDERUNGEN.md")
+    # TODO(MVP): Quelle wählen (Loopback/WAV), Queue befüllen, Analyzer +
+    # BeatTracker in Schleife, Scheduler initialisieren, Renderer mit
     # Preview- und Ausgabefenster öffnen, UI verdrahten, Event-Loop starten.
 
 
