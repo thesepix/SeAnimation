@@ -284,7 +284,8 @@ class App:
         self.ui = UI(self, self.renderer)
         self.renderer.ui = self.ui  # Renderer zeichnet UI im Preview
         for w in (self.renderer.preview, self.renderer.output):
-            w.push_handlers(on_key_press=self.on_key_press, on_mouse_press=self.on_mouse_press)
+            if w is not None:
+                w.push_handlers(on_key_press=self.on_key_press, on_mouse_press=self.on_mouse_press)
         # Preview rendert GL + UI in einem Handler (push_handlers = dokumentierter Weg)
         self.renderer.preview.push_handlers(on_draw=self._on_draw_preview)
         print("  [app] Fenster geöffnet (Preview + Ausgabe)")

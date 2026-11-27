@@ -85,11 +85,20 @@ bzw. mit `--file` eine Datei in Echtzeit:
 
 ## Entwicklung & Mitwirken
 
+**Ein Befehl vor jedem Commit:** `python tools/check.py` (Syntax + Unit-Tests + Selftest).
+
+**Headless-Screenshot (Render-Test ohne GUI, braucht GPU — auf dem Win11-Desktop):**
+```powershell
+python -m seanimation --shot docs\screenshots\effect0.png --file tests\assets\beat_124bpm.wav --effect 0
+# ohne Datei (Synth-Signal 124 BPM):  python -m seanimation --shot out.png --frames 120
+```
+
 - Anforderungsänderungen und Code laufen über **Pull Requests** von `main`
   (Branch-Schema `vibe/<slug>-1ac69e`, Draft-PR zum Review) — Details in
   **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 - **KI-Agenten** (Claude, Copilot, …) lesen zuerst **[AGENTS.md](AGENTS.md)**
-  mit den verbindlichen Regeln für dieses Repo.
+  mit den verbindlichen Regeln; Übergabe-Status siehe **[HANDOVER.md](HANDOVER.md)**,
+  Versionshistorie in **[CHANGELOG.md](CHANGELOG.md)**.
 - Issue-Templates (Bug/Feature) und PR-Template liegen unter `.github/`;
   Abhängigkeiten aktualisiert Dependabot automatisch (`.github/dependabot.yml`).
 - Projektgerüst: Paket `seanimation/` mit den Modulen `audio`, `analysis`,

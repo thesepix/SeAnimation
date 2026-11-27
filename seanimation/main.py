@@ -67,6 +67,16 @@ def main() -> None:
         action="store_true",
         help="CLI-Modus: --file-Datei durch die Beat-Pipeline analysieren (ohne GUI)",
     )
+    parser.add_argument(
+        "--shot",
+        metavar="PFAD_PNG",
+        default=None,
+        help="Headless-Render: Frames in unsichtbarem Fenster rendern und als PNG speichern "
+        "(Referenz-Screenshots f\u00fcr Doku/Tests; ohne --file wird ein Synth-Signal bei --bpm genutzt)",
+    )
+    parser.add_argument("--frames", type=int, default=120, help="Anzahl Frames f\u00fcr --shot (default 120 = 2 s bei 60 fps)")
+    parser.add_argument("--effect", type=int, default=0, help="Effekt-Index f\u00fcr --shot (0..6, siehe Effektliste in der GUI)")
+    parser.add_argument("--size", default="1280x720", help="Aufl\u00f6sung f\u00fcr --shot, Format WxH (default 1280x720)")
     args = parser.parse_args()
 
     if args.list_devices:
@@ -113,6 +123,24 @@ def main() -> None:
 
         result = run_file_analysis(args.audio_file)
         raise SystemExit(0 if result["beats"] else 1)
+
+    if args.shot:
+        from .devtest import run_shot
+
+        try:
+            w, h = (int(x) for x in args.size.lower().split("x"))
+            assert w > 0 and h > 0
+        except Exception:
+            parser.error("--size braucht Format WxH, z. B. 1280x720")
+        ok = run_shot(
+            args.shot,
+            audio_file=args.audio_file,
+            frames=args.frames,
+            effect_idx=args.effect,
+            size=(w, h),
+            bpm=args.bpm,
+        )
+        raise SystemExit(0 if ok else 1)
 
     # Default: GUI-App (Loopback live oder --file in Echtzeit)
     from . import config
