@@ -78,7 +78,7 @@ bzw. mit `--file` eine Datei in Echtzeit:
 - **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
 - **Space** = nächster Effekt (quantisiert auf Beat), **ESC** = Ende
 - Clips (Bilder/Videos) liegen im Ordner **`media/` neben der Exe** (z. B.
-  `media neben der Exe\`) und werden beim Start gescannt
+  `C:\Desktop\SeAnimation\media\`) und werden beim Start gescannt
 
 ## Entwicklung
 
