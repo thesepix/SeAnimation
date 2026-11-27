@@ -3,7 +3,13 @@ Entry-Skript verwendet und kann auch direkt ausgeführt werden:
     python seanimation_cli.py --selftest
 """
 
+import sys
+
 from seanimation.main import main
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nBeendet.")
+        sys.exit(0)

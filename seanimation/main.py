@@ -59,16 +59,21 @@ def main() -> None:
         ok = run_selftest(bpm=args.bpm)
         raise SystemExit(0 if ok else 1)
 
-    if args.audio_file:
+    if args.audio_file and not args.tap:
         from .devtest import run_file_analysis
 
         result = run_file_analysis(args.audio_file)
         raise SystemExit(0 if result["beats"] else 1)
 
-    print(f"SeAnimation {__version__} – Projektgerüst")
-    print("Audioquelle: WASAPI-Loopback (Standard-Audiogerät)")
-    print("TODO(MVP): Vollständige Pipeline mit Renderer/UI starten.")
-    print("Headless-Tests: python -m seanimation --selftest | --file <track.flac/mp3/wav> | Doku: ANFORDERUNGEN.md")
+    # Default: GUI-App (Loopback live oder --file in Echtzeit)
+    from . import config
+
+    print(f"SeAnimation {__version__} – starte GUI "
+          f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback'})")
+    print("Tasten: 1-5 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende")
+    from .app import run_app
+
+    run_app(media_dir=config.MEDIA_DIR, audio_file=args.audio_file, device=config.AUDIO_DEVICE)
     # TODO(MVP): Quelle wählen (Loopback/WAV), Queue befüllen, Analyzer +
     # BeatTracker in Schleife, Scheduler initialisieren, Renderer mit
     # Preview- und Ausgabefenster öffnen, UI verdrahten, Event-Loop starten.

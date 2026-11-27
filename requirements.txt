@@ -16,4 +16,4 @@ Pillow>=10.0
 
 # Rendering: OpenGL-Fenster (zwei Fenster: Preview + Ausgabe), Shader, Input
 moderngl>=5.8
-moderngl-window>=2.6
+pyglet>=2.0

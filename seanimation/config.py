@@ -20,5 +20,10 @@ MAX_AUDIO_LATENCY_MS = 100
 
 # Beat-Sync-Modell (Abschnitt 3.3 in ANFORDERUNGEN.md)
 FRAME_STEP_BEATS = 1          # Video-Frame-Step: 1 Frame pro N Beats
+FRAMES_PER_BEAT = FRAME_STEP_BEATS
 DEFAULT_CLIP_LOOP_BEATS = 4   # Standard-Looplänge eines Clips in Beats
 BEAT_DECAY_TAU = 0.25         # Zeitkonstante der Beat-Envelope in Sekunden
+
+# GUI/Renderer (Abschnitt 3.5)
+PREVIEW_SIZE = (960, 540)
+OUTPUT_SIZE = (1280, 720)

@@ -1,35 +1,47 @@
-"""Beat-getriebene Effekte und das MVP-Set der 5 Test-Animationen (Abschnitt 7).
+"""Effekt-Registry + MVP-Set der 5 Test-Animationen (ANFORDERUNGEN.md Abschnitt 7).
 
-Jeder Effekt erhält pro Frame die Beat-Phase und die Beat-Envelope
-(Impuls auf dem Beat, exponentielles Abklingen — Abschnitt 3.3.1), sodass
-jede sichtbare Änderung im Takt passiert.
+Jeder Effekt bekommt pro Frame Beat-Phase und Beat-Envelope (Abschnitt 3.3.1).
+
+kind:
+  - "bg"            nur generativer Hintergrund-Shader
+  - "ring"          Hintergrund + starker Beat-Ring-Overlay
+  - "clip_video"    Video-Clip im Frame-Step (1 Frame pro Beat)
+  - "clip_image"    Bild mit Kick-Puls (Scale/Helligkeit auf dem Beat)
+  - "clip_wobble"   Video/Bild mit Kugel-Wobble-Shader (wackelt pro Beat)
 """
 
 from __future__ import annotations
 
-# MVP: 5 fest eingebaute Test-Animationen
 EFFECTS_MVP = [
-    "video_frame_step",  # 1. Video im Frame-Step: 1 Frame pro Beat, Loop über N Beats
-    "image_kick_pulse",  # 2. Bild wird auf jedem Beat kurz größer + heller
-    "sphere_wobble",     # 3. Video/Bild wird zur Kugel geformt, wackelt pro Beat
-    "reactive_bg",       # 4. generativer Hintergrund: Bass treibt Wellen, Kick = Blitz
-    "beat_ring",         # 5. Vollbild-Ring/Blitz auf jedem Beat, Farbe wechselt pro Takt
+    {"id": "reactive_bg",     "name": "Reaktiver Hintergrund", "kind": "bg"},
+    {"id": "beat_ring",       "name": "Beat-Ring",             "kind": "ring"},
+    {"id": "video_frame_step","name": "Video Frame-Step",      "kind": "clip_video"},
+    {"id": "image_kick_pulse","name": "Bild Kick-Puls",        "kind": "clip_image"},
+    {"id": "sphere_wobble",   "name": "Kugel-Wobble",          "kind": "clip_wobble"},
 ]
+
+# Tastenkürzel: 1..5
+EFFECT_KEYS = {i + 1: i for i in range(len(EFFECTS_MVP))}
 
 
 class EffectRegistry:
-    """Registry aller verfügbaren Animationen/Effekte (Thumbnail-Index -> Effekt)."""
+    def __init__(self, effects=None):
+        self._effects = list(effects if effects is not None else EFFECTS_MVP)
 
-    def __init__(self):
-        self._effects: dict[str, object] = {}
+    def register(self, effect: dict) -> None:
+        self._effects.append(effect)
 
-    def register(self, name: str, effect) -> None:
-        # TODO(MVP): Effekt registrieren.
-        raise NotImplementedError
+    def get(self, index: int) -> dict:
+        return self._effects[index % len(self._effects)]
 
-    def get(self, name: str):
-        # TODO(MVP): Effekt nach Namen (oder Thumbnail-Index) zurückgeben.
-        raise NotImplementedError
+    def by_id(self, effect_id: str) -> dict:
+        for e in self._effects:
+            if e["id"] == effect_id:
+                return e
+        raise KeyError(effect_id)
 
     def names(self) -> list[str]:
-        return list(self._effects)
+        return [e["name"] for e in self._effects]
+
+    def __len__(self) -> int:
+        return len(self._effects)

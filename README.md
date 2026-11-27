@@ -63,6 +63,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
   - immer neueste: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
 - Changelog: siehe ANFORDERUNGEN.md Abschnitt 10 (Entscheidungsprotokoll) + Release Notes.
 
+## GUI-App (Visuals live)
+
+Ohne Argumente startet die App mit **WASAPI-Loopback** (alles, was der PC abspielt)
+bzw. mit `--file` eine Datei in Echtzeit:
+
+```powershell
+.\SeAnimation-0.4.0.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
+.\SeAnimation-0.4.0.exe --file C:\temp\Vletrmx.mp3
+```
+
+- **Preview-Fenster**: BPM/Beat-Anzeige, Effektliste (klickbar oder Tasten **1–5**),
+  **TAP-Button** (Taste **T**) als Fallback wenn die Erkennung nicht greift
+- **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
+- **Space** = nächster Effekt (quantisiert auf Beat), **ESC** = Ende
+- Clips (Bilder/Videos) liegen im Ordner `media/` (wird beim Start gescannt)
+
 ## Entwicklung
 
 - Anforderungsänderungen und Code laufen über **Pull Requests** in diesem Repo

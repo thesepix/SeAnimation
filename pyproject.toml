@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seanimation"
-version = "0.3.0"
+version = "0.4.0"
 description = "Beat-synchrone Musik-Visuals für Windows 11 (Python + OpenGL)"
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-only" }
@@ -15,7 +15,7 @@ dependencies = [
     "opencv-python>=4.8",
     "Pillow>=10.0",
     "moderngl>=5.8",
-    "moderngl-window>=2.6",
+    "pyglet>=2.0",
 ]
 
 [project.scripts]

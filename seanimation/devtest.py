@@ -158,12 +158,13 @@ def run_tap_mode(path=None, verbose: bool = True) -> dict:
         src.start(q)
 
     last_beat = -1
-    while not stop.is_set():
-        if q is not None:
-            try:
-                block = q.get(timeout=0.2)
-            except queue.Empty:
-                continue
+    try:
+        while not stop.is_set():
+            if q is not None:
+                try:
+                    block = q.get(timeout=0.2)
+                except queue.Empty:
+                    continue
             now = time.monotonic() - t0
             for features in analyzer.process(block):
                 st = tracker.update(features, now)
@@ -172,10 +173,14 @@ def run_tap_mode(path=None, verbose: bool = True) -> dict:
                     if verbose:
                         print(f"  beat {st.beat_number:4d}  bpm={st.bpm:6.1f}  phase={st.phase:.2f}"
                               + ("  BAR" if st.is_bar else "") + ("  [TAP]" if now < tracker.manual_until else ""))
-        else:
-            time.sleep(0.05)
-    if src is not None:
-        src.stop()
+            else:
+                time.sleep(0.05)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop.set()
+        if src is not None:
+            src.stop()
     if verbose:
         print(f"Ende: bpm={tracker.bpm:.2f}, beats={tracker._beat_number}")
     return {"bpm": tracker.bpm, "beats": tracker._beat_number}
