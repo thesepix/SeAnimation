@@ -63,7 +63,9 @@ class App:
         if not self.audio_file:
             from .audio.source import device_name
 
-            print(f"  [app] Audio: Loopback '{device_name(self.source.device)}'")
+            dev = getattr(self.source, "device", None)
+            label = device_name(dev) if dev is not None else getattr(self.source, "device_label", "?")
+            print(f"  [app] Audio: Loopback '{label}'")
         sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
         print(f"  [app] Samplerate: {sr} Hz")
         self.analyzer = Analyzer(samplerate=sr)

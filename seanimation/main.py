@@ -57,6 +57,11 @@ def main() -> None:
         metavar="N",
         help="Audiogerät-Index aus --list-devices statt automatischem Loopback wählen",
     )
+    parser.add_argument(
+        "--check-audio",
+        action="store_true",
+        help="Nur Audio-Quelle testen (0,5 s Loopback-Blöcke zählen) und beenden",
+    )
     args = parser.parse_args()
 
     if args.list_devices:
@@ -64,6 +69,25 @@ def main() -> None:
 
         list_all_devices()
         return
+
+    if args.check_audio:
+        # Audio-Quelle isoliert testen: starten, 0,5 s Blöcke zählen
+        import queue
+        import time
+
+        from .audio.source import get_default_source
+
+        src = get_default_source(args.device)
+        label = getattr(src, "device_label", None) or getattr(src, "device", None)
+        print(f"Audio-Quelle: {type(src).__name__} ({label})")
+        q: "queue.Queue" = queue.Queue()
+        src.start(q)
+        time.sleep(0.5)
+        n = q.qsize()
+        src.stop()
+        print(f"Samplerate: {getattr(src, 'samplerate', '?')} Hz | Blöcke in 0,5 s: {n}")
+        print("ERGEBNIS: " + ("PASS" if n > 0 else "FAIL"))
+        raise SystemExit(0 if n > 0 else 1)
 
     if args.tap:
         from .devtest import run_tap_mode

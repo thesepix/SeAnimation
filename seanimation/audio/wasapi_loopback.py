@@ -38,6 +38,12 @@ class WasapiLoopbackSource(AudioSource):
         import ctypes
         from ctypes import c_ubyte, c_uint32, c_uint64, c_void_p
 
+        import comtypes
+
+        try:
+            comtypes.CoInitialize()  # COM auf diesem Thread initialisieren (idempotent-sicher)
+        except Exception:
+            pass
         from comtypes import CLSCTX_ALL, COMMETHOD, GUID, HRESULT, IUnknown, POINTER, cast
         # Hinweis: Activate/GetService liefern POINTER(IUnknown) — explizit casten,
         # damit die Interface-Methoden (GetMixFormat, GetBuffer, ...) verfügbar sind.
