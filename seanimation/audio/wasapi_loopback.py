@@ -39,6 +39,8 @@ class WasapiLoopbackSource(AudioSource):
         from ctypes import c_ubyte, c_uint32, c_uint64, c_void_p
 
         from comtypes import CLSCTX_ALL, COMMETHOD, GUID, HRESULT, IUnknown, POINTER, cast
+        # Hinweis: Activate/GetService liefern POINTER(IUnknown) — explizit casten,
+        # damit die Interface-Methoden (GetMixFormat, GetBuffer, ...) verfügbar sind.
         from pycaw.api.audioclient import IAudioClient
         from pycaw.constants import EDataFlow, ERole
         from pycaw.utils import AudioUtilities
@@ -65,9 +67,9 @@ class WasapiLoopbackSource(AudioSource):
             self.device_label = str(device.GetFriendlyName())
         except Exception:
             pass
-        # comtypes: REFIID-Parameter als GUID-Instanz übergeben (Interface._iid_),
-        # dann liefert comtypes automatisch den passend typisierten Pointer zurück
-        client = device.Activate(IAudioClient._iid_, CLSCTX_ALL, None)
+        # comtypes: REFIID-Parameter als GUID-Instanz (Interface._iid_); das Ergebnis
+        # ist POINTER(IUnknown) und muss auf das Ziel-Interface gecastet werden
+        client = cast(device.Activate(IAudioClient._iid_, CLSCTX_ALL, None), POINTER(IAudioClient))
         fmt = client.GetMixFormat()  # POINTER(WAVEFORMATEX)
         self.samplerate = int(fmt.nSamplesPerSec)
         self.channels = int(fmt.nChannels)
@@ -81,7 +83,7 @@ class WasapiLoopbackSource(AudioSource):
             fmt,
             None,
         )
-        capture = client.GetService(IAudioCaptureClient._iid_)
+        capture = cast(client.GetService(IAudioCaptureClient._iid_), POINTER(IAudioCaptureClient))
         client.Start()
         self._stop = False
 
