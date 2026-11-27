@@ -160,8 +160,13 @@ class App:
 
     # ---------- Loop ----------
     def _on_draw_preview(self) -> None:
-        self.renderer.preview.switch_to()
-        self.renderer._safe_render_gl(self.renderer.preview)
+        import moderngl
+
+        win = self.renderer.preview
+        self.renderer._safe_render_gl(win)  # macht switch_to + rendert GL
+        # UI zeichnen: pyglet-Kontext current machen + GL-State zurücksetzen
+        win.switch_to()
+        self.renderer.gl[win].ctx.disable(moderngl.BLEND)
         try:
             self.ui.draw()  # UI über GL
         except Exception:

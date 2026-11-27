@@ -70,11 +70,12 @@ class WasapiLoopbackSource(AudioSource):
         # comtypes: REFIID-Parameter als GUID-Instanz (Interface._iid_); das Ergebnis
         # ist POINTER(IUnknown) und muss auf das Ziel-Interface gecastet werden
         client = cast(device.Activate(IAudioClient._iid_, CLSCTX_ALL, None), POINTER(IAudioClient))
-        fmt = client.GetMixFormat()  # POINTER(WAVEFORMATEX)
-        self.samplerate = int(fmt.nSamplesPerSec)
-        self.channels = int(fmt.nChannels)
-        bits = int(fmt.wBitsPerSample)
-        block_align = int(fmt.nBlockAlign)
+        fmt = client.GetMixFormat()  # LP_WAVEFORMATEX (ctypes-Pointer -> .contents)
+        wfx = fmt.contents
+        self.samplerate = int(wfx.nSamplesPerSec)
+        self.channels = int(wfx.nChannels)
+        bits = int(wfx.wBitsPerSample)
+        block_align = int(wfx.nBlockAlign)
         client.Initialize(
             AUDCLNT_SHAREMODE_SHARED,
             AUDCLNT_STREAMFLAGS_LOOPBACK,

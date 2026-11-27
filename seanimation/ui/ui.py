@@ -19,23 +19,23 @@ class UI:
         x, y, w, h = TAP_RECT
         self.tap_rect = pyglet.shapes.Rectangle(x, y, w, h, color=(190, 50, 50))
         self.tap_label = pyglet.text.Label(
-            "TAP (T)", x=x + 30, y=y + 22, font_size=16,
+            "TAP (T)", x=x + 30, y=y + 22, font_size=18,
             color=(255, 255, 255, 255), anchor_x="left", anchor_y="center",
         )
-        self.bpm_label = pyglet.text.Label("", x=20, y=window.height - 30, font_size=20,
+        self.bpm_label = pyglet.text.Label("", x=20, y=window.height - 30, font_size=24,
                                            color=(120, 255, 120, 255))
         self.beat_circle = pyglet.shapes.Circle(window.width - 60, window.height - 60, 12,
                                                 color=(255, 200, 60))
         self.hint_label = pyglet.text.Label(
             "1-5 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende",
-            x=20, y=window.height - 60, font_size=11, color=(160, 160, 160, 255),
+            x=20, y=window.height - 60, font_size=12, color=(160, 160, 160, 255),
         )
         self.effect_labels: list[pyglet.text.Label] = []
         for i in range(len(app.effects)):
             row_x, row_w, row_h = EFFECT_ROW[0], EFFECT_ROW[2], EFFECT_ROW[3]
             row_y = window.height - 100 - i * (row_h + 4)
             self.effect_labels.append(
-                pyglet.text.Label("", x=row_x, y=row_y, font_size=13,
+                pyglet.text.Label("", x=row_x, y=row_y, font_size=15,
                                   color=(220, 220, 220, 255))
             )
 
