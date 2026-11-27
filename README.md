@@ -41,8 +41,8 @@ Job `build-exe`, Läuft bei jedem Push/PR):
    https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
 3. Testen — **kein Python/git/gh nötig**:
    ```powershell
-   .\SeAnimation-v0.3.0.exe --selftest
-   .\SeAnimation-v0.3.0.exe --file C:\temp\AnnaPainting.flac
+   .\SeAnimation-0.3.0.exe --selftest
+   .\SeAnimation-0.3.0.exe --file C:\temp\AnnaPainting.flac
    ```
 
 ## Exe lokal bauen (einmalig Python 3.11+ von python.org nötig)
@@ -50,16 +50,16 @@ Job `build-exe`, Läuft bei jedem Push/PR):
 ```powershell
 # Python 3.11+ von python.org installieren, Haken "Add python.exe to PATH" setzen
 powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
-# -> dist\SeAnimation-vX.Y.Z.exe (onefile: eine einzige Datei, Version im Namen)
+# -> dist\SeAnimation-X.Y.Z.exe (onefile: eine einzige Datei, Version im Namen)
 ```
 
 ## Releases / Versionierung
 
-- SemVer in `seanimation/__init__.py` (`__version__`) und `pyproject.toml`; `SeAnimation-vX.Y.Z.exe --version`.
-- **Der Dateiname trägt die Version**: `SeAnimation-v0.3.0.exe` (kommt aus der PyInstaller-Spec).
+- SemVer in `seanimation/__init__.py` (`__version__`) und `pyproject.toml`; `SeAnimation-X.Y.Z.exe --version` (SemVer ohne "v"; Tag `vX.Y.Z` ↔ Datei `SeAnimation-X.Y.Z.exe).
+- **Der Dateiname trägt die Version**: `SeAnimation-0.3.0.exe` (SemVer aus `__version__`, ohne "v").
 - Jeder Release = **annotated Tag `vX.Y.Z`** + GitHub Release (Workflow `release.yml` baut die Exe auf `windows-latest` und hängt sie als Asset an).
-- Exe-Download pro Release: Release-Asset `SeAnimation-vX.Y.Z.exe` auf GitHub — Fallback (bei Artifact-Quota): Branch **`dist-exe`** →
-  - versioniert: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation-v0.3.0.exe
+- Exe-Download pro Release: Release-Asset `SeAnimation-X.Y.Z.exe` auf GitHub — Fallback (bei Artifact-Quota): Branch **`dist-exe`** →
+  - versioniert: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation-0.3.0.exe
   - immer neueste: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
 - Changelog: siehe ANFORDERUNGEN.md Abschnitt 10 (Entscheidungsprotokoll) + Release Notes.
 

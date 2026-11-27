@@ -185,5 +185,5 @@ portierbar.
 | v1.3 | Datei-Quellen: `AudioFileSource` via soundfile/libsndfile (WAV/FLAC/MP3/OGG — Nutzer hat v. a. FLAC/MP3); `WavFileSource` (stdlib, PCM 8/16/24/32 bit) bleibt als Fallback; CLI: `--file` (Alias `--wav`) |
 | v1.4 | Versionierung: SemVer (`__version__` + pyproject, `--version`); Releases = annotated Tags `vX.Y.Z` + GitHub Releases; Workflow `release.yml` baut Exe pro Tag und hängt sie als Release-Asset an, Fallback: Branch `dist-exe` (`bin/SeAnimation.exe`) |
 | v1.4 | BeatTracker: Phase-Snap nur auf Kick-Onsets (Bassband), Flux-Onsets nur Tempo + Fallback; Offbeats zählen nicht doppelt (Regressionstest mit Offbeat-Clicks) |
-| v1.5 | Exe-Dateiname trägt die Version: `SeAnimation-vX.Y.Z.exe` (Spec liest `__version__`); dist-exe: versionierte Datei + `SeAnimation.exe` als latest-Alias; Release-Assets heißen ebenfalls `SeAnimation-vX.Y.Z.exe` |
+| v1.5 | Exe-Dateiname trägt die Version: `SeAnimation-X.Y.Z.exe` (SemVer ohne "v", Spec liest `__version__`; Mapping Tag `vX.Y.Z` ↔ Datei `SeAnimation-X.Y.Z.exe`); dist-exe: versionierte Datei + `SeAnimation.exe` als latest-Alias |
 | v1.5 | Beat-Tap (A12): `BeatTracker.tap()` setzt Tempo/Phase aus Tap-Intervallen, Manual-Override 8 s; CLI `--tap` jetzt, GUI-Button mit dem UI-PR |
