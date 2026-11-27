@@ -48,6 +48,8 @@ class App:
         self.source = None
         self.q: "queue.Queue" = queue.Queue()
         self._last_beat = -1
+        self._audio_seen = False
+        self._first_beat_seen = False
         self.renderer: Renderer | None = None
         self.ui: UI | None = None
 
@@ -81,12 +83,18 @@ class App:
             except queue.Empty:
                 break
             for f in self.analyzer.process(block):
+                if not self._audio_seen:
+                    print("  [app] Audio läuft — erste Blöcke verarbeitet")
+                    self._audio_seen = True
                 st = self.tracker.update(f, f["time"])
                 self.state.features = f
                 self.state.beat_state = st
                 self.state.last_time = f["time"]
                 if st.beat_number != self._last_beat:
                     self._last_beat = st.beat_number
+                    if st.beat_number == 1 and not self._first_beat_seen:
+                        print(f"  [app] erster Beat erkannt (bpm≈{st.bpm:.1f})")
+                        self._first_beat_seen = True
                     self._on_beat(st)
 
     def _on_beat(self, st) -> None:
@@ -94,6 +102,7 @@ class App:
         if self.state.pending_effect_idx is not None:
             self.state.active_effect = self.effects.get(self.state.pending_effect_idx)
             self.state.pending_effect_idx = None
+            print(f"  [app] Effekt aktiv (auf Beat): {self.state.active_effect['name']}")
             self._apply_effect()
 
     def _eff_index(self) -> int:

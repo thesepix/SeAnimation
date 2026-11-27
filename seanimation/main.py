@@ -62,6 +62,11 @@ def main() -> None:
         action="store_true",
         help="Nur Audio-Quelle testen (0,5 s Loopback-Blöcke zählen) und beenden",
     )
+    parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="CLI-Modus: --file-Datei durch die Beat-Pipeline analysieren (ohne GUI)",
+    )
     args = parser.parse_args()
 
     if args.list_devices:
@@ -101,7 +106,9 @@ def main() -> None:
         ok = run_selftest(bpm=args.bpm)
         raise SystemExit(0 if ok else 1)
 
-    if args.audio_file and not args.tap:
+    if args.analyze:
+        if not args.audio_file:
+            parser.error("--analyze braucht --file <track>")
         from .devtest import run_file_analysis
 
         result = run_file_analysis(args.audio_file)
@@ -111,7 +118,7 @@ def main() -> None:
     from . import config
 
     print(f"SeAnimation {__version__} – starte GUI "
-          f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback (Was du hörst)'})")
+          f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback (Was du hörst) — Musik im Player abspielen!'})")
     print(f"Medien-Ordner: {config.MEDIA_DIR}")
     print("Tasten: 1-5 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende")
     from .app import run_app

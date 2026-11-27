@@ -19,7 +19,7 @@ cd SeAnimation
 git checkout vibe/anforderungen-1ac69e
 pip install -r requirements.txt      # oder: pip install -e .
 python -m seanimation --selftest        # Beat-Pipeline ohne Audiohardware testen
-python -m seanimation --file <dein-track.flac> (Pfad egal)   # Audio-Datei durch die Pipeline
+python -m seanimation --analyze --file <dein-track.flac>   # CLI: Datei durch die Beat-Pipeline
 ```
 
 `--file` dekodiert via libsndfile: **WAV, FLAC, MP3, OGG** u. a. (`--wav` geht als Alias weiter).
@@ -70,7 +70,7 @@ bzw. mit `--file` eine Datei in Echtzeit:
 
 ```powershell
 .\SeAnimation-0.4.0.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
-.\SeAnimation-0.4.0.exe --file <dein-track.mp3>
+.\SeAnimation-0.5.0.exe --file <dein-track.mp3>
 ```
 
 - **Preview-Fenster**: BPM/Beat-Anzeige, Effektliste (klickbar oder Tasten **1–5**),
