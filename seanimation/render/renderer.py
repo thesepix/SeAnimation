@@ -16,6 +16,7 @@ GL-Code läuft nicht in der Sandbox (keine GPU) — Test auf dem Win11-Desktop.
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import moderngl
@@ -89,6 +90,8 @@ class Renderer:
                 pass
         self._gl_error_printed = False
         self._last_now = 0.0
+        self._last_draw: dict = {}  # Frame-Limiter pro Fenster (~60 fps cap)
+        self._min_frame_s = 1.0 / 62.0
 
         self.ui = None  # wird von der App gesetzt (GL-UI)
 
@@ -97,11 +100,23 @@ class Renderer:
         self.output.push_handlers(on_draw=self._on_draw_output)
 
     # ---------- Fenster-Events ----------
+    def _throttle(self, key: str) -> bool:
+        """Frame-Limiter: max. ~60 fps pro Fenster (sonst frisst das Rendering den Event-Loop)."""
+        now = time.monotonic()
+        if now - self._last_draw.get(key, 0.0) < self._min_frame_s:
+            return True
+        self._last_draw[key] = now
+        return False
+
     def _on_draw_preview(self):
+        if self._throttle("preview"):
+            return
         self.preview.switch_to()
         self._safe_render_gl(self.preview)
 
     def _on_draw_output(self):
+        if self._throttle("output"):
+            return
         self.output.switch_to()
         self._safe_render_gl(self.output)
 

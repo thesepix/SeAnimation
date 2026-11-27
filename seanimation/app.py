@@ -10,30 +10,21 @@ F Fullscreen, ESC Ende. Maus: Tap-Button, Effektliste klicken.
 from __future__ import annotations
 
 import queue
+import time
 from pathlib import Path
 from types import SimpleNamespace
+
+import numpy as np
 
 from . import config
 from .analysis.analyzer import Analyzer
 from .analysis.beat import BeatTracker
 from .audio.source import get_default_source
-from .devtest import _make_file_source
 from .library.clip_player import ClipPlayer
 from .library.library import Library
 from .render.effects import EffectRegistry
 from .render.renderer import Renderer
 from .ui.ui import UI
-
-
-class _Fanout:
-    """Queue-Wrapper: put() leitet an mehrere Queues weiter (Analyse + Audio-Out)."""
-
-    def __init__(self, queues):
-        self.queues = queues
-
-    def put(self, item):
-        for q in self.queues:
-            q.put(item)
 
 
 class App:
@@ -66,86 +57,114 @@ class App:
         self.renderer: Renderer | None = None
         self.ui: UI | None = None
         self.out_stream = None
-        self._player_q: "queue.Queue | None" = None
+        # Datei-Modus (thread-los, alles im RAM):
+        self._file_data: "np.ndarray | None" = None
+        self._file_sr = 0
+        self._file_pos = 0
+        self._play_pos = 0
+        self._t0 = 0.0
 
     # ---------- Audio ----------
     def start_audio(self) -> None:
         if self.audio_file:
-            self.source = _make_file_source(self.audio_file, realtime=True)
-            self.source.ensure_loaded()
-            print(f"  [app] Audio: Datei {self.audio_file}")
-        else:
-            self.source = get_default_source(self.device)  # WASAPI-Loopback der Default-Ausgabe
-            self.source.start(self.q)
-            sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
-            self._finish_audio_start(sr)
-            return
-        # Datei-Modus: Quelle fächert in Analyse-Queue + Player-Queue auf,
-        # damit die Datei gleichzeitig über die Lautsprecher abgespielt wird
-        sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
-        self._player_q = queue.Queue()
-        self.source.start(_Fanout([self.q, self._player_q]))
-        if config.PLAY_FILE_AUDIO:
-            try:
-                import sounddevice as sd
+            # Datei-Modus: komplett in den RAM dekodieren (einmalig), dann
+            # thread-los: Wiedergabe über gerätegetriebenen Output-Callback,
+            # Analyse im Render-Loop per Wallclock (kein Source-Thread, kein GIL-Kampf)
+            import time
 
-                ch = int(self.source._data.shape[1]) if getattr(self.source, "_data", None) is not None else 2
+            import numpy as np
+            import soundfile as sf
 
-                def _cb(outdata, frames, time_info, status):
-                    try:
-                        block = self._player_q.get(timeout=0.05)
-                        n = min(len(block), frames)
-                        outdata[:n] = block[:n]
-                        if n < frames:
+            data, sr = sf.read(self.audio_file, dtype="float32", always_2d=True)
+            self._file_data = np.ascontiguousarray(data)
+            self._file_sr = int(sr)
+            self._file_pos = 0
+            self._t0 = time.monotonic()
+            print(f"  [app] Audio: Datei {self.audio_file} ({len(data) / sr:.1f}s, {sr} Hz) im Speicher")
+            if config.PLAY_FILE_AUDIO:
+                try:
+                    import sounddevice as sd
+
+                    ch = int(data.shape[1])
+                    self._play_pos = 0
+
+                    def _cb(outdata, frames, time_info, status):
+                        d = self._file_data
+                        n = min(frames, len(d) - self._play_pos)
+                        if n > 0:
+                            outdata[:n] = d[self._play_pos : self._play_pos + n]
+                            self._play_pos += n
+                        if n < frames:  # Ende -> Loop
                             outdata[n:] = 0
-                    except queue.Empty:
-                        outdata[:] = 0
+                            self._play_pos = 0
 
-                self.out_stream = sd.OutputStream(
-                    samplerate=sr, channels=ch, blocksize=config.AUDIO_BLOCKSIZE,
-                    dtype="float32", latency="low", callback=_cb,
-                )
-                self.out_stream.start()
-                print(f"  [app] Wiedergabe: Datei läuft über die Lautsprecher ({sr} Hz, {ch} ch)")
-            except Exception as e:
-                print(f"  [app] Wiedergabe fehlgeschlagen (Analyse läuft weiter): {e}")
-        self._finish_audio_start(sr)
+                    self.out_stream = sd.OutputStream(
+                        samplerate=sr, channels=ch, blocksize=config.AUDIO_BLOCKSIZE,
+                        dtype="float32", latency="low", callback=_cb,
+                    )
+                    self.out_stream.start()
+                    print(f"  [app] Wiedergabe: Datei läuft über die Lautsprecher ({sr} Hz, {ch} ch, Loop)")
+                except Exception as e:
+                    print(f"  [app] Wiedergabe fehlgeschlagen (Analyse läuft weiter): {e}")
+            self.analyzer = Analyzer(samplerate=self._file_sr)
+            self.tracker = BeatTracker(samplerate=self._file_sr)
+            return
+        # Live-Modus: WASAPI-Loopback (Core Audio) — Musik kommt vom externen Player
+        self.source = get_default_source(self.device)
+        self.source.start(self.q)
+        from .audio.source import device_name
 
-    def _finish_audio_start(self, sr: int) -> None:
-        if not self.audio_file:
-            from .audio.source import device_name
-
-            dev = getattr(self.source, "device", None)
-            label = device_name(dev) if dev is not None else getattr(self.source, "device_label", "?")
-            print(f"  [app] Audio: Loopback '{label}'")
+        dev = getattr(self.source, "device", None)
+        label = device_name(dev) if dev is not None else getattr(self.source, "device_label", "?")
+        print(f"  [app] Audio: Loopback '{label}'")
         sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
         print(f"  [app] Samplerate: {sr} Hz")
         self.analyzer = Analyzer(samplerate=sr)
         self.tracker = BeatTracker(samplerate=sr)
 
+    def _process_block(self, block) -> None:
+        assert self.analyzer is not None
+        for f in self.analyzer.process(block):
+            if not self._audio_seen:
+                print("  [app] Audio läuft — erste Blöcke verarbeitet")
+                self._audio_seen = True
+            st = self.tracker.update(f, f["time"])
+            self.state.features = f
+            self.state.beat_state = st
+            self.state.last_time = f["time"]
+            if st.beat_number != self._last_beat:
+                self._last_beat = st.beat_number
+                if st.beat_number == 1 and not self._first_beat_seen:
+                    print(f"  [app] erster Beat erkannt (bpm≈{st.bpm:.1f})")
+                    self._first_beat_seen = True
+                self._on_beat(st)
+
     def update(self, dt: float) -> None:
-        """pyglet-Timer: Audio-Queue drainen -> Analyzer -> BeatTracker."""
+        """pyglet-Timer: Audio -> Analyzer -> BeatTracker.
+
+        Live-Modus: Queue der Loopback-Quelle drainen.
+        Datei-Modus: thread-los aus dem RAM, per Wallclock getaktet.
+        """
         if self.analyzer is None:  # Audio-Start fehlgeschlagen -> nur GUI zeigen
+            return
+        if self._file_data is not None:
+            target = int((time.monotonic() - self._t0) * self._file_sr)
+            target = min(target, len(self._file_data))
+            target = min(target, self._file_pos + int(0.5 * self._file_sr))  # max 0,5 s aufholen
+            while self._file_pos < target:
+                block = self._file_data[self._file_pos : self._file_pos + config.AUDIO_BLOCKSIZE]
+                self._file_pos += len(block)
+                self._process_block(block)
+            if self._file_pos >= len(self._file_data):  # Loop
+                self._file_pos = 0
+                self._t0 = time.monotonic()
             return
         while True:
             try:
                 block = self.q.get_nowait()
             except queue.Empty:
                 break
-            for f in self.analyzer.process(block):
-                if not self._audio_seen:
-                    print("  [app] Audio läuft — erste Blöcke verarbeitet")
-                    self._audio_seen = True
-                st = self.tracker.update(f, f["time"])
-                self.state.features = f
-                self.state.beat_state = st
-                self.state.last_time = f["time"]
-                if st.beat_number != self._last_beat:
-                    self._last_beat = st.beat_number
-                    if st.beat_number == 1 and not self._first_beat_seen:
-                        print(f"  [app] erster Beat erkannt (bpm≈{st.bpm:.1f})")
-                        self._first_beat_seen = True
-                    self._on_beat(st)
+            self._process_block(block)
 
     def _on_beat(self, st) -> None:
         """Wechsel quantisiert auf Beat-Grenze (Abschnitt 3.3.3)."""

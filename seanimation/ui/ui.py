@@ -58,6 +58,7 @@ class UI:
         self._tex_cache: dict = {}   # key -> moderngl texture (pro preview-ctx)
         self._white = None
         self._prog = None
+        self._logged = False
         self.items: list[tuple] = []  # (x, y, w, h, tex, tint, action)
 
     # ---------- Texturen ----------
@@ -154,6 +155,9 @@ class UI:
         import moderngl
 
         self._build_items(w, h)
+        if not self._logged:
+            print(f"  [ui] GL-UI zeichnet {len(self.items)} Elemente")
+            self._logged = True
         prog = self._prog_ui(g)
         verts = []
         for (x, y, qw, qh, _tex, _tint, _act) in self.items:
