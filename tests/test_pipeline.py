@@ -111,6 +111,38 @@ class TestWavFileSource(unittest.TestCase):
         finally:
             os.unlink(path)
 
+    def test_load_pcm24(self):
+        # 24-bit-PCM-WAV (wie z. B. AnnaPainting.wav) muss dekodiert werden,
+        # inkl. Vorzeichenerweiterung bei negativen Samples.
+        sr = 44100
+        t = np.arange(sr // 2) / sr
+        x = 0.5 * np.sin(2 * np.pi * 440.0 * t)  # enthält negative Werte
+        v = np.round(x * 8388607.0).astype(np.int32)
+        u = (v & 0xFFFFFF).astype(np.uint32)
+        b = np.stack(
+            [
+                (u & 0xFF).astype(np.uint8),
+                ((u >> 8) & 0xFF).astype(np.uint8),
+                ((u >> 16) & 0xFF).astype(np.uint8),
+            ],
+            axis=1,
+        )
+        fd, path = tempfile.mkstemp(suffix=".wav")
+        os.close(fd)
+        try:
+            with wave.open(path, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(3)
+                w.setframerate(sr)
+                w.writeframes(b.reshape(-1).tobytes())
+            src = WavFileSource(path)
+            arr = src.load()
+            self.assertEqual(arr.shape, (sr // 2, 1))
+            self.assertEqual(src.samplerate, sr)
+            self.assertTrue(np.allclose(arr[:, 0], x, atol=1e-5))
+        finally:
+            os.unlink(path)
+
 
 if __name__ == "__main__":
     unittest.main()
