@@ -19,7 +19,7 @@ cd SeAnimation
 git checkout vibe/anforderungen-1ac69e
 pip install -r requirements.txt      # oder: pip install -e .
 python -m seanimation --selftest        # Beat-Pipeline ohne Audiohardware testen
-python -m seanimation --file C:\temp\AnnaPainting.flac   # Audio-Datei durch die Pipeline
+python -m seanimation --file <dein-track.flac> (Pfad egal)   # Audio-Datei durch die Pipeline
 ```
 
 `--file` dekodiert via libsndfile: **WAV, FLAC, MP3, OGG** u. a. (`--wav` geht als Alias weiter).
@@ -42,7 +42,7 @@ Job `build-exe`, Läuft bei jedem Push/PR):
 3. Testen — **kein Python/git/gh nötig**:
    ```powershell
    .\SeAnimation-0.3.0.exe --selftest
-   .\SeAnimation-0.3.0.exe --file C:\temp\AnnaPainting.flac
+   .\SeAnimation-0.3.0.exe --file <dein-track.flac> (Pfad egal)
    ```
 
 ## Exe lokal bauen (einmalig Python 3.11+ von python.org nötig)
@@ -70,7 +70,7 @@ bzw. mit `--file` eine Datei in Echtzeit:
 
 ```powershell
 .\SeAnimation-0.4.0.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
-.\SeAnimation-0.4.0.exe --file C:\temp\Vletrmx.mp3
+.\SeAnimation-0.4.0.exe --file <dein-track.mp3>
 ```
 
 - **Preview-Fenster**: BPM/Beat-Anzeige, Effektliste (klickbar oder Tasten **1–5**),
@@ -78,7 +78,7 @@ bzw. mit `--file` eine Datei in Echtzeit:
 - **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
 - **Space** = nächster Effekt (quantisiert auf Beat), **ESC** = Ende
 - Clips (Bilder/Videos) liegen im Ordner **`media/` neben der Exe** (z. B.
-  `C:\temp\media\`) und werden beim Start gescannt
+  `media neben der Exe\`) und werden beim Start gescannt
 
 ## Entwicklung
 
