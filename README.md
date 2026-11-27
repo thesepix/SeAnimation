@@ -77,7 +77,8 @@ bzw. mit `--file` eine Datei in Echtzeit:
   **TAP-Button** (Taste **T**) als Fallback wenn die Erkennung nicht greift
 - **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
 - **Space** = nächster Effekt (quantisiert auf Beat), **ESC** = Ende
-- Clips (Bilder/Videos) liegen im Ordner `media/` (wird beim Start gescannt)
+- Clips (Bilder/Videos) liegen im Ordner **`media/` neben der Exe** (z. B.
+  `C:\temp\media\`) und werden beim Start gescannt
 
 ## Entwicklung
 

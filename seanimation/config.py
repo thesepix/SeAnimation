@@ -3,10 +3,18 @@
 MVP: hartkodierte Defaults (N3). Step 2: Auslagerung in eine Config-Datei.
 """
 
+import sys
 from pathlib import Path
 
-# Ordner mit den Animations-Clips (Bilder/Videos). Wird im MVP manuell gesetzt.
-MEDIA_DIR = Path(__file__).resolve().parent.parent / "media"
+# Basis-Verzeichnis: im Source-Repo das Repo-Root, in der gefrorenen Exe das
+# Verzeichnis der .exe -> Clips liegen dann in <exe-dir>/media/
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Ordner mit den Animations-Clips (Bilder/Videos): <BASE_DIR>/media
+MEDIA_DIR = BASE_DIR / "media"
 
 # Audio: MVP = Standard-/erstes verfügbares Windows-Audiogerät (WASAPI-Loopback).
 # None = System-Default; später in der UI wählbar.

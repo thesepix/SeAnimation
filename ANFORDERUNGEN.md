@@ -188,3 +188,4 @@ portierbar.
 | v1.5 | Exe-Dateiname trägt die Version: `SeAnimation-X.Y.Z.exe` (SemVer ohne "v", Spec liest `__version__`; Mapping Tag `vX.Y.Z` ↔ Datei `SeAnimation-X.Y.Z.exe`); dist-exe: versionierte Datei + `SeAnimation.exe` als latest-Alias |
 | v1.5 | Beat-Tap (A12): `BeatTracker.tap()` setzt Tempo/Phase aus Tap-Intervallen, Manual-Override 8 s; CLI `--tap` jetzt, GUI-Button mit dem UI-PR |
 | v1.6 | Renderer/UI-MVP (v0.4.0): zwei Fenster via pyglet + moderngl (shared context) — Preview mit UI (BPM, Beat-Kreis, Effektliste, Tap-Button) + randloses Ausgabefenster (F = Fullscreen, OBS Window Capture); 5 MVP-Effekte; ClipPlayer mit Frame-Step; Library-Scan; Tasten 1-5/Space/T/F/ESC. GL-Code in Sandbox nicht ausführbar → Test auf Win11-Desktop mit Release-Exe |
+| v1.6 | v0.4.1: MEDIA_DIR in der gefrorenen Exe = `<exe-dir>/media` (vorher PyInstaller-Temp — Clips wären nicht gefunden worden) |
