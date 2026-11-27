@@ -73,18 +73,37 @@ class Renderer:
         self._clip_tex = None
         self._clip_tex_size = None
 
-        # Draw-Handler
-        self.preview.on_draw = self._on_draw_preview
-        self.output.on_draw = self._on_draw_output
+        # GL-Info loggen (Diagnose, ob der Kontext ans Fenster gebunden ist)
+        try:
+            info = self.ctx.info
+            print(f"  [render] GL-Kontext: {info.get('GL_RENDERER')} | {info.get('GL_VERSION')}")
+        except Exception:
+            pass
+        self._gl_error_printed = False
+
+        # Draw-Handler: push_handlers ist der dokumentierte Weg (pyglet 2.x);
+        # preview.on_draw setzt die App selbst (GL + UI zusammen)
+        self.output.push_handlers(on_draw=self._on_draw_output)
+
+    def _safe_render_gl(self, win) -> None:
+        """_render_gl mit Einmal-Traceback — ein GL-Fehler darf die App nicht killen."""
+        try:
+            self._render_gl(win)
+        except Exception:
+            if not self._gl_error_printed:
+                import traceback
+
+                traceback.print_exc()
+                self._gl_error_printed = True
 
     # ---------- Fenster-Events ----------
     def _on_draw_preview(self):
         self.preview.switch_to()
-        self._render_gl(self.preview)
+        self._safe_render_gl(self.preview)
 
     def _on_draw_output(self):
         self.output.switch_to()
-        self._render_gl(self.output)
+        self._safe_render_gl(self.output)
 
     def toggle_fullscreen(self):
         try:

@@ -1,11 +1,12 @@
-"""WasapiLoopbackSource: Loopback-Capture direkt über Windows Core Audio (pycaw).
+"""WasapiLoopbackSource: Loopback-Capture direkt über Windows Core Audio.
 
 Fallback, wenn PortAudio/sounddevice keine Loopback-Geräte listet (auf vielen
-Win11-Systemen der Fall): nimmt die Default-Render-Endpoint im
-AUDCLNT_STREAMFLAGS_LOOPBACK-Modus auf = "Was du hörst".
+Win11-Systemen der Fall): Default-Render-Endpoint im AUDCLNT_STREAMFLAGS_LOOPBACK-
+Modus aufnehmen = "Was du hörst".
 
-Nur Windows (pycaw/comtypes, lazy importiert). Start:
-    src = WasapiLoopbackSource(); src.start(queue)
+pycaw (aktuelle Version) liefert IAudioClient/AudioUtilities, aber weder
+IAudioCaptureClient noch die AUDCLNT_STREAMFLAGS-Konstanten — die definieren wir
+hier selbst via comtypes. Nur Windows; alles lazy importiert.
 """
 
 from __future__ import annotations
@@ -18,38 +19,54 @@ import numpy as np
 
 from .source import AudioSource
 
+# COM-Konstanten (nicht in pycaw als Modulkonstanten vorhanden)
+AUDCLNT_SHAREMODE_SHARED = 0
+AUDCLNT_STREAMFLAGS_LOOPBACK = 0x00020000
+IAUDIO_CAPTURE_CLIENT_IID = "{C8ADBD64-E71E-48A0-A4DE-185C395CD317}"
+
 
 class WasapiLoopbackSource(AudioSource):
     def __init__(self, buffer_duration_100ns: int = 10_000_000):
         self.buffer_duration_100ns = buffer_duration_100ns  # 1 s in 100-ns-Einheiten
         self.samplerate = 48000
         self.channels = 2
-        self.device_label = "Default-Render-Endpoint (pycaw loopback)"
+        self.device_label = "Default-Render-Endpoint (Core-Audio-Loopback)"
         self._stop = False
         self._thread: threading.Thread | None = None
 
     def start(self, out_queue: "queue.Queue[np.ndarray]") -> None:
         import ctypes
+        from ctypes import c_ubyte, c_uint32, c_uint64, c_void_p
 
-        from comtypes import CLSCTX_ALL
-        from pycaw.pycaw import (
-            AUDCLNT_SHAREMODE_SHARED,
-            AUDCLNT_STREAMFLAGS_LOOPBACK,
-            EDataFlow,
-            ERole,
-            IAudioCaptureClient,
-            IAudioClient,
-            AudioUtilities,
-        )
+        from comtypes import CLSCTX_ALL, COMMETHOD, GUID, HRESULT, IUnknown, POINTER, cast
+        from pycaw.api.audioclient import IAudioClient
+        from pycaw.constants import EDataFlow, ERole
+        from pycaw.utils import AudioUtilities
+
+        class IAudioCaptureClient(IUnknown):
+            _iid_ = GUID(IAUDIO_CAPTURE_CLIENT_IID)
+            _methods_ = [
+                COMMETHOD(
+                    [],
+                    HRESULT,
+                    "GetBuffer",
+                    (["out"], POINTER(POINTER(c_ubyte)), "ppData"),
+                    (["out"], POINTER(c_uint32), "pNumFramesToRead"),
+                    (["out"], POINTER(c_uint32), "pdwFlags"),
+                    (["out"], POINTER(c_uint64), "pu64DevicePosition"),
+                    (["out"], POINTER(c_uint64), "pu64QPCPosition"),
+                ),
+                COMMETHOD([], HRESULT, "ReleaseBuffer", (["in"], c_uint32, "NumFramesRead")),
+            ]
 
         enumerator = AudioUtilities.GetDeviceEnumerator()
-        device = enumerator.GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia)
+        device = enumerator.GetDefaultAudioEndpoint(EDataFlow.eRender.value, ERole.eMultimedia.value)
         try:
             self.device_label = str(device.GetFriendlyName())
         except Exception:
             pass
         client = device.Activate(IAudioClient, CLSCTX_ALL, None)
-        fmt = client.GetMixFormat()
+        fmt = client.GetMixFormat()  # POINTER(WAVEFORMATEX)
         self.samplerate = int(fmt.nSamplesPerSec)
         self.channels = int(fmt.nChannels)
         bits = int(fmt.wBitsPerSample)
@@ -69,15 +86,15 @@ class WasapiLoopbackSource(AudioSource):
         def run() -> None:
             while not self._stop:
                 try:
-                    p_data, n_frames, _flags = capture.GetBuffer()
+                    pp_data, n_frames, _flags, _pos, _qpc = capture.GetBuffer()
                 except Exception:
                     time.sleep(0.01)
                     continue
-                if n_frames == 0 or not p_data:
+                if not n_frames or not pp_data:
                     capture.ReleaseBuffer(0)
                     time.sleep(0.005)
                     continue
-                addr = ctypes.cast(p_data, ctypes.c_void_p).value
+                addr = cast(pp_data, c_void_p).value
                 raw = ctypes.string_at(addr, n_frames * block_align)
                 capture.ReleaseBuffer(n_frames)
                 if bits == 32:

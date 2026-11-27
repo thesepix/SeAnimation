@@ -161,8 +161,15 @@ class App:
     # ---------- Loop ----------
     def _on_draw_preview(self) -> None:
         self.renderer.preview.switch_to()
-        self.renderer._render_gl(self.renderer.preview)
-        self.ui.draw()  # UI über GL
+        self.renderer._safe_render_gl(self.renderer.preview)
+        try:
+            self.ui.draw()  # UI über GL
+        except Exception:
+            if not self.renderer._gl_error_printed:
+                import traceback
+
+                traceback.print_exc()
+                self.renderer._gl_error_printed = True
 
     def run(self) -> None:
         import pyglet
@@ -179,9 +186,9 @@ class App:
         self.ui = UI(self, self.renderer.preview)
         for w in (self.renderer.preview, self.renderer.output):
             w.push_handlers(on_key_press=self.on_key_press, on_mouse_press=self.on_mouse_press)
-        self.renderer.preview.on_draw = self._on_draw_preview  # GL + UI
+        # Preview rendert GL + UI in einem Handler (push_handlers = dokumentierter Weg)
+        self.renderer.preview.push_handlers(on_draw=self._on_draw_preview)
         print("  [app] Fenster geöffnet (Preview + Ausgabe)")
-        # output.on_draw bleibt Renderer._on_draw_output
 
         try:
             self.start_audio()
