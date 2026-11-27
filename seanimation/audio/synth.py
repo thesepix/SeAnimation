@@ -24,12 +24,14 @@ class SynthSource(AudioSource):
         blocksize: int = 512,
         duration: float = 10.0,
         realtime: bool = True,
+        offbeat: bool = False,
     ):
         self.bpm = bpm
         self.samplerate = samplerate
         self.blocksize = blocksize
         self.duration = duration
         self.realtime = realtime
+        self.offbeat = offbeat  # leiser Click auf den 8teln (Offbeat) — zum Testen der Doppelzählung
         self._stop = False
         self._thread: threading.Thread | None = None
 
@@ -53,6 +55,15 @@ class SynthSource(AudioSource):
                 sig[i0 : i0 + mc] += (
                     0.5 * np.sin(2.0 * np.pi * 1500.0 * tc) * np.exp(-tc / 0.002)
                 ).astype(np.float32)
+            if self.offbeat:
+                # leiser Offbeat-Click auf der 8tel dazwischen
+                j0 = int((bt + period / 2.0) * self.samplerate)
+                mo = min(int(0.015 * self.samplerate), n - j0)
+                if mo > 0:
+                    to = np.arange(mo) / self.samplerate
+                    sig[j0 : j0 + mo] += (
+                        0.25 * np.sin(2.0 * np.pi * 1200.0 * to) * np.exp(-to / 0.002)
+                    ).astype(np.float32)
         return np.clip(sig, -1.0, 1.0)
 
     def start(self, out_queue: "queue.Queue[np.ndarray]") -> None:

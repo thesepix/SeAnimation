@@ -82,6 +82,22 @@ class TestBeatTracker(unittest.TestCase):
         dist = float(np.min(np.abs(state.time_of_last_beat - true_beats)))
         self.assertLessEqual(dist, 0.3 * (60.0 / bpm))
 
+    def test_no_double_count_with_offbeats(self):
+        # Regression: Offbeat-Onsets (8tel) dürfen beat_number nicht aufblähen
+        bpm, duration = 124.0, 8.0
+        synth = SynthSource(bpm=bpm, samplerate=48000, duration=duration,
+                            realtime=False, offbeat=True)
+        sig = synth.generate()
+        analyzer = Analyzer(samplerate=48000)
+        tracker = BeatTracker(samplerate=48000)
+        n = 0
+        for i in range(0, sig.size, 512):
+            for f in analyzer.process(sig[i : i + 512]):
+                n = tracker.update(f, f["time"]).beat_number
+        expected = duration * bpm / 60.0  # ~16,5 Beats
+        self.assertAlmostEqual(n, expected, delta=expected * 0.25)
+        self.assertAlmostEqual(tracker.bpm, bpm, delta=3.0)
+
     def test_envelope(self):
         tracker, state = run_pipeline(bpm=120.0, duration=4.0)
         # Direkt auf dem Beat ~1, kurz vor dem nächsten Beat klein

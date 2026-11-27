@@ -20,6 +20,7 @@ def main() -> None:
         prog="seanimation",
         description="SeAnimation – beat-synchrone Musik-Visuals (Windows 11)",
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
         "--selftest",
         action="store_true",

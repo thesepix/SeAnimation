@@ -179,3 +179,5 @@ portierbar.
 | v1.2 | Auslieferung als standalone **Exe** via PyInstaller (onedir, Konsole sichtbar) — Ziel-PC braucht kein Python/git/gh; Nuitka als Alternative verworfen (einfacher: PyInstaller) |
 | v1.2 | CI (GitHub Actions `ci.yml`): Unit-Tests auf ubuntu-latest; Exe-Build auf windows-latest. Lieferung: PR-Artefakt `SeAnimation-win64`, Fallback bei Artifact-Quota: Bot committet `bin/SeAnimation.exe` auf Branch `dist-exe` (Browser-Download) |
 | v1.3 | Datei-Quellen: `AudioFileSource` via soundfile/libsndfile (WAV/FLAC/MP3/OGG — Nutzer hat v. a. FLAC/MP3); `WavFileSource` (stdlib, PCM 8/16/24/32 bit) bleibt als Fallback; CLI: `--file` (Alias `--wav`) |
+| v1.4 | Versionierung: SemVer (`__version__` + pyproject, `--version`); Releases = annotated Tags `vX.Y.Z` + GitHub Releases; Workflow `release.yml` baut Exe pro Tag und hängt sie als Release-Asset an, Fallback: Branch `dist-exe` (`bin/SeAnimation.exe`) |
+| v1.4 | BeatTracker: Phase-Snap nur auf Kick-Onsets (Bassband), Flux-Onsets nur Tempo + Fallback; Offbeats zählen nicht doppelt (Regressionstest mit Offbeat-Clicks) |

@@ -53,6 +53,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
 # -> dist\SeAnimation.exe (onefile: eine einzige Datei)
 ```
 
+## Releases / Versionierung
+
+- SemVer in `seanimation/__init__.py` (`__version__`) und `pyproject.toml`; `SeAnimation.exe --version`.
+- Jeder Release = **annotated Tag `vX.Y.Z`** + GitHub Release (Workflow `release.yml` baut die Exe auf `windows-latest` und hängt sie als Asset an).
+- Exe-Download pro Release: Release-Asset auf GitHub — Fallback (bei Artifact-Quota): Branch **`dist-exe`** → https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
+- Changelog: siehe ANFORDERUNGEN.md Abschnitt 10 (Entscheidungsprotokoll) + Release Notes.
+
 ## Entwicklung
 
 - Anforderungsänderungen und Code laufen über **Pull Requests** in diesem Repo
