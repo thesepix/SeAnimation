@@ -69,11 +69,20 @@ def main() -> None:
     from . import config
 
     print(f"SeAnimation {__version__} – starte GUI "
-          f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback'})")
+          f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback (Was du hörst)'})")
+    print(f"Medien-Ordner: {config.MEDIA_DIR}")
     print("Tasten: 1-5 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende")
     from .app import run_app
 
-    run_app(media_dir=config.MEDIA_DIR, audio_file=args.audio_file, device=config.AUDIO_DEVICE)
+    try:
+        run_app(media_dir=config.MEDIA_DIR, audio_file=args.audio_file, device=config.AUDIO_DEVICE)
+    except KeyboardInterrupt:
+        print("\nBeendet.")
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
+        print("GUI-Fehler — bitte Traceback melden. CLI-Modi: --selftest | --file <track> | --tap")
     # TODO(MVP): Quelle wählen (Loopback/WAV), Queue befüllen, Analyzer +
     # BeatTracker in Schleife, Scheduler initialisieren, Renderer mit
     # Preview- und Ausgabefenster öffnen, UI verdrahten, Event-Loop starten.

@@ -50,6 +50,8 @@ class LoopbackSource(AudioSource):
             callback=callback,
         )
         self._stream.start()
+        # tatsächliche Samplerate des Geräts übernehmen (Analyzer/Tracker brauchen sie)
+        self.samplerate = int(self._stream.samplerate) or self.samplerate
 
     def stop(self) -> None:
         if self._stream is not None:

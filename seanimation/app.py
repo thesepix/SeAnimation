@@ -10,6 +10,7 @@ F Fullscreen, ESC Ende. Maus: Tap-Button, Effektliste klicken.
 from __future__ import annotations
 
 import queue
+from pathlib import Path
 from types import SimpleNamespace
 
 from . import config
@@ -54,10 +55,16 @@ class App:
         if self.audio_file:
             self.source = _make_file_source(self.audio_file, realtime=True)
             self.source.ensure_loaded()
+            print(f"  [app] Audio: Datei {self.audio_file}")
         else:
-            self.source = get_default_source(self.device)  # WASAPI-Loopback
+            self.source = get_default_source(self.device)  # WASAPI-Loopback der Default-Ausgabe
         self.source.start(self.q)
+        if not self.audio_file:
+            from .audio.source import device_name
+
+            print(f"  [app] Audio: Loopback '{device_name(self.source.device)}'")
         sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
+        print(f"  [app] Samplerate: {sr} Hz")
         self.analyzer = Analyzer(samplerate=sr)
         self.tracker = BeatTracker(samplerate=sr)
 
@@ -158,6 +165,8 @@ class App:
     def run(self) -> None:
         import pyglet
 
+        # media/ neben der Exe anlegen (falls nicht vorhanden) und scannen
+        Path(self.media_dir).mkdir(parents=True, exist_ok=True)
         self.library.scan()
         print(f"  [app] Library: {len(self.library.clips)} Clip(s) in {self.media_dir}")
         self.start_audio()

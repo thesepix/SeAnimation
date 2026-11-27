@@ -218,6 +218,30 @@ class TestBeatTap(unittest.TestCase):
         self.assertAlmostEqual(tr.bpm, 150.0, delta=8.0)
 
 
+class TestLoopbackDevicePick(unittest.TestCase):
+    def test_pick_loopback_by_output_name(self):
+        from seanimation.audio.source import _pick_loopback_device
+
+        devices = [
+            {"name": "Mikrofon (Realtek)", "max_input_channels": 2, "hostapi": 0},
+            {"name": "Speakers (Realtek)", "max_input_channels": 0, "hostapi": 0},   # output
+            {"name": "Speakers (Realtek)", "max_input_channels": 2, "hostapi": 0},   # loopback
+            {"name": "Other (loopback)", "max_input_channels": 2, "hostapi": 0},
+        ]
+        # Default-Ausgabe = Index 1 -> Loopback mit gleichem Namen = Index 2
+        self.assertEqual(_pick_loopback_device(devices, hostapi_index=0, default_output_index=1), 2)
+
+    def test_pick_loopback_fallback_by_name(self):
+        from seanimation.audio.source import _pick_loopback_device
+
+        devices = [
+            {"name": "Mikrofon", "max_input_channels": 2, "hostapi": 0},
+            {"name": "Höhen (loopback)", "max_input_channels": 2, "hostapi": 0},
+        ]
+        self.assertEqual(_pick_loopback_device(devices, hostapi_index=-1, default_output_index=-1), 1)
+        self.assertIsNone(_pick_loopback_device([{"name": "Mikrofon", "max_input_channels": 2, "hostapi": 0}], 0, -1))
+
+
 @unittest.skipUnless(HAS_SOUNDFILE, "soundfile nicht installiert")
 class TestAudioFileSource(unittest.TestCase):
     def test_load_flac(self):
