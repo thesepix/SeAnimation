@@ -33,9 +33,11 @@ Hinweise:
 Die Windows-Exe wird automatisch per GitHub Actions gebaut (Workflow `ci`,
 Job `build-exe`, Läuft bei jedem Push/PR):
 
-1. PR öffnen → Tab **Actions** → Lauf des Branches `vibe/anforderungen-1ac69e`
-   → Artifact **`SeAnimation-win64`** herunterladen (enthält die einzelne Datei `SeAnimation.exe`)
-2. Entpacken und testen — **kein Python/git/gh nötig**:
+1. PR öffnen → Tab **Actions** → Lauf des PRs → Artifact **`SeAnimation-win64`** laden (enthält `SeAnimation.exe`)
+2. **Fallback** (wenn das Artifact wegen Account-Quota fehlt): die Exe liegt auf dem
+   Branch **`dist-exe`** und lässt sich direkt im Browser laden:
+   https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
+3. Testen — **kein Python/git/gh nötig**:
    ```powershell
    .\SeAnimation.exe --selftest
    .\SeAnimation.exe --wav C:\temp\AnnaPainting.wav

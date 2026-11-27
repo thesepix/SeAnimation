@@ -177,4 +177,4 @@ portierbar.
 | v1.1 | Beat-Tracker als eigene numpy-Implementierung (Onset-Fluss + IOI-Median + Phasen-Snap); aubio/librosa aus requirements entfernt (Installationsrisiko auf Windows), optional in Step 2 |
 | v1.1 | Testquellen ohne Hardware: `SynthSource` (Kick+Click bei BPM) und `WavFileSource`; Selftest via `python -m seanimation --selftest` |
 | v1.2 | Auslieferung als standalone **Exe** via PyInstaller (onedir, Konsole sichtbar) — Ziel-PC braucht kein Python/git/gh; Nuitka als Alternative verworfen (einfacher: PyInstaller) |
-| v1.2 | CI (GitHub Actions `ci.yml`): Unit-Tests auf ubuntu-latest; Exe-Build auf windows-latest als PR-Artefakt `SeAnimation-win64` (Download ohne lokale Installation) |
+| v1.2 | CI (GitHub Actions `ci.yml`): Unit-Tests auf ubuntu-latest; Exe-Build auf windows-latest. Lieferung: PR-Artefakt `SeAnimation-win64`, Fallback bei Artifact-Quota: Bot committet `bin/SeAnimation.exe` auf Branch `dist-exe` (Browser-Download) |
