@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seanimation"
-version = "0.4.2"
+version = "0.4.3"
 description = "Beat-synchrone Musik-Visuals für Windows 11 (Python + OpenGL)"
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-only" }

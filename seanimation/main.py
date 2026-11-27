@@ -45,7 +45,25 @@ def main() -> None:
         action="store_true",
         help="Beat-Tap-Modus: Enter tappt den Beat (überschreibt die Erkennung für 8 s), q = Ende",
     )
+    parser.add_argument(
+        "--list-devices",
+        action="store_true",
+        help="Alle Audiogeräte mit Index auflisten (für --device N) und beenden",
+    )
+    parser.add_argument(
+        "--device",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Audiogerät-Index aus --list-devices statt automatischem Loopback wählen",
+    )
     args = parser.parse_args()
+
+    if args.list_devices:
+        from .audio.source import list_all_devices
+
+        list_all_devices()
+        return
 
     if args.tap:
         from .devtest import run_tap_mode
@@ -75,7 +93,11 @@ def main() -> None:
     from .app import run_app
 
     try:
-        run_app(media_dir=config.MEDIA_DIR, audio_file=args.audio_file, device=config.AUDIO_DEVICE)
+        run_app(
+            media_dir=config.MEDIA_DIR,
+            audio_file=args.audio_file,
+            device=args.device if args.device is not None else config.AUDIO_DEVICE,
+        )
     except KeyboardInterrupt:
         print("\nBeendet.")
     except Exception:

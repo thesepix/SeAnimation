@@ -241,6 +241,17 @@ class TestLoopbackDevicePick(unittest.TestCase):
         self.assertEqual(_pick_loopback_device(devices, hostapi_index=-1, default_output_index=-1), 1)
         self.assertIsNone(_pick_loopback_device([{"name": "Mikrofon", "max_input_channels": 2, "hostapi": 0}], 0, -1))
 
+    def test_pick_loopback_fuzzy_name(self):
+        from seanimation.audio.source import _pick_loopback_device
+
+        devices = [
+            {"name": "Mikrofon (Realtek)", "max_input_channels": 2, "hostapi": 1},
+            {"name": "Speakers (Realtek HD Audio)", "max_input_channels": 0, "hostapi": 1},  # output
+            {"name": "Speakers (Realtek HD Audio) (loopback)", "max_input_channels": 2, "hostapi": 1},
+        ]
+        # unscharfer Match: Ausgabe-Name ist Teil des Loopback-Namens
+        self.assertEqual(_pick_loopback_device(devices, hostapi_index=1, default_output_index=1), 2)
+
 
 @unittest.skipUnless(HAS_SOUNDFILE, "soundfile nicht installiert")
 class TestAudioFileSource(unittest.TestCase):

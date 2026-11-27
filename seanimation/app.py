@@ -35,6 +35,7 @@ class App:
             pending_effect_idx=None,
             clip_player=None,
             clip_path=None,
+            audio_error=None,
             running=True,
         )
         self.media_dir = media_dir
@@ -70,7 +71,8 @@ class App:
 
     def update(self, dt: float) -> None:
         """pyglet-Timer: Audio-Queue drainen -> Analyzer -> BeatTracker."""
-        assert self.analyzer is not None
+        if self.analyzer is None:  # Audio-Start fehlgeschlagen -> nur GUI zeigen
+            return
         while True:
             try:
                 block = self.q.get_nowait()
@@ -169,16 +171,23 @@ class App:
         Path(self.media_dir).mkdir(parents=True, exist_ok=True)
         self.library.scan()
         print(f"  [app] Library: {len(self.library.clips)} Clip(s) in {self.media_dir}")
-        self.start_audio()
+
+        # Fenster ZUERST öffnen — Audio-Fehler dürfen die GUI nicht verhindern
         self.state.active_effect = self.effects.get(0)
         self._apply_effect()
-
         self.renderer = Renderer(self.state, config.PREVIEW_SIZE, config.OUTPUT_SIZE)
         self.ui = UI(self, self.renderer.preview)
         for w in (self.renderer.preview, self.renderer.output):
             w.push_handlers(on_key_press=self.on_key_press, on_mouse_press=self.on_mouse_press)
         self.renderer.preview.on_draw = self._on_draw_preview  # GL + UI
+        print("  [app] Fenster geöffnet (Preview + Ausgabe)")
         # output.on_draw bleibt Renderer._on_draw_output
+
+        try:
+            self.start_audio()
+        except Exception as e:
+            self.state.audio_error = str(e)
+            print(f"  [app] AUDIO-FEHLER (GUI läuft trotzdem): {e}")
 
         pyglet.clock.schedule_interval(self.update, 1.0 / config.TARGET_FPS)
 

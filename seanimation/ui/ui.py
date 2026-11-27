@@ -60,6 +60,8 @@ class UI:
             env = bs.envelope(st.last_time)
             self.bpm_label.text = f"{bs.bpm:6.1f} BPM   Beat {bs.beat_number}" + ("  BAR" if bs.is_bar else "")
             self.beat_circle.radius = 10 + 26 * env
+        elif getattr(st, "audio_error", None):
+            self.bpm_label.text = "AUDIO-FEHLER: " + st.audio_error[:60]
         else:
             self.bpm_label.text = "... warte auf Audio"
         active_id = (st.active_effect or {}).get("id")

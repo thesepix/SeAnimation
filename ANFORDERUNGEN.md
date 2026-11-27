@@ -190,3 +190,4 @@ portierbar.
 | v1.6 | Renderer/UI-MVP (v0.4.0): zwei Fenster via pyglet + moderngl (shared context) — Preview mit UI (BPM, Beat-Kreis, Effektliste, Tap-Button) + randloses Ausgabefenster (F = Fullscreen, OBS Window Capture); 5 MVP-Effekte; ClipPlayer mit Frame-Step; Library-Scan; Tasten 1-5/Space/T/F/ESC. GL-Code in Sandbox nicht ausführbar → Test auf Win11-Desktop mit Release-Exe |
 | v1.6 | v0.4.1: MEDIA_DIR in der gefrorenen Exe = `<exe-dir>/media` (vorher PyInstaller-Temp — Clips wären nicht gefunden worden) |
 | v1.7 | v0.4.2: Loopback automatisch als Loopback-Gerät der Default-Ausgabe (vorher Default-Eingang = Mikrofon); media/ wird neben der Exe angelegt; GUI mit mehr Konsolen-Logs + freundlichem Fehler |
+| v1.7 | v0.4.3: GUI öffnet Fenster **vor** Audio-Start (Audio-Fehler nicht mehr fatal, Anzeige im Preview); `--list-devices` + `--device N` zum manuellen Wählen; Loopback-Matching unscharf (Name enthält Ausgabe-Name) |
