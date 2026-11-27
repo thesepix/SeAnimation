@@ -112,12 +112,16 @@ class TestLibrary(unittest.TestCase):
 class TestEffects(unittest.TestCase):
     def test_mvp_effects(self):
         reg = EffectRegistry()
-        self.assertEqual(len(reg), 5)
+        self.assertEqual(len(reg), len(EFFECTS_MVP))  # 7 Effekte (v0.6.0)
         self.assertEqual(reg.get(0)["id"], "reactive_bg")
-        self.assertEqual(reg.get(4)["id"], "sphere_wobble")
-        self.assertEqual(reg.get(5)["id"], "reactive_bg")  # wrap
+        self.assertEqual(reg.get(4)["id"], "clip_wobble")
         self.assertEqual(reg.by_id("beat_ring")["kind"], "ring")
-        self.assertEqual(len(EFFECTS_MVP), 5)
+        self.assertEqual(reg.by_id("clip_distort")["clip_kind"], "video")
+        self.assertEqual(reg.get(len(EFFECTS_MVP))["id"], "reactive_bg")  # wrap
+        # alle clip_-Effekte haben ein clip_kind
+        for e in EFFECTS_MVP:
+            if e["kind"].startswith("clip_"):
+                self.assertIn(e["clip_kind"], ("video", "image"))
 
 
 if __name__ == "__main__":
