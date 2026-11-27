@@ -25,6 +25,17 @@ from .render.renderer import Renderer
 from .ui.ui import UI
 
 
+class _Fanout:
+    """Queue-Wrapper: put() leitet an mehrere Queues weiter (Analyse + Audio-Out)."""
+
+    def __init__(self, queues):
+        self.queues = queues
+
+    def put(self, item):
+        for q in self.queues:
+            q.put(item)
+
+
 class App:
     def __init__(self, media_dir, audio_file=None, device=None):
         self.state = SimpleNamespace(
@@ -48,10 +59,13 @@ class App:
         self.source = None
         self.q: "queue.Queue" = queue.Queue()
         self._last_beat = -1
+        self._bar_count = 0
         self._audio_seen = False
         self._first_beat_seen = False
         self.renderer: Renderer | None = None
         self.ui: UI | None = None
+        self.out_stream = None
+        self._player_q: "queue.Queue | None" = None
 
     # ---------- Audio ----------
     def start_audio(self) -> None:
@@ -61,7 +75,42 @@ class App:
             print(f"  [app] Audio: Datei {self.audio_file}")
         else:
             self.source = get_default_source(self.device)  # WASAPI-Loopback der Default-Ausgabe
-        self.source.start(self.q)
+            self.source.start(self.q)
+            sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
+            self._finish_audio_start(sr)
+            return
+        # Datei-Modus: Quelle fächert in Analyse-Queue + Player-Queue auf,
+        # damit die Datei gleichzeitig über die Lautsprecher abgespielt wird
+        sr = int(getattr(self.source, "samplerate", 0) or 0) or config.AUDIO_SAMPLERATE
+        self._player_q = queue.Queue()
+        self.source.start(_Fanout([self.q, self._player_q]))
+        if config.PLAY_FILE_AUDIO:
+            try:
+                import sounddevice as sd
+
+                ch = int(self.source._data.shape[1]) if getattr(self.source, "_data", None) is not None else 2
+
+                def _cb(outdata, frames, time_info, status):
+                    try:
+                        block = self._player_q.get(timeout=0.05)
+                        n = min(len(block), frames)
+                        outdata[:n] = block[:n]
+                        if n < frames:
+                            outdata[n:] = 0
+                    except queue.Empty:
+                        outdata[:] = 0
+
+                self.out_stream = sd.OutputStream(
+                    samplerate=sr, channels=ch, blocksize=config.AUDIO_BLOCKSIZE,
+                    dtype="float32", latency="low", callback=_cb,
+                )
+                self.out_stream.start()
+                print(f"  [app] Wiedergabe: Datei läuft über die Lautsprecher ({sr} Hz, {ch} ch)")
+            except Exception as e:
+                print(f"  [app] Wiedergabe fehlgeschlagen (Analyse läuft weiter): {e}")
+        self._finish_audio_start(sr)
+
+    def _finish_audio_start(self, sr: int) -> None:
         if not self.audio_file:
             from .audio.source import device_name
 
@@ -104,6 +153,13 @@ class App:
             self.state.pending_effect_idx = None
             print(f"  [app] Effekt aktiv (auf Beat): {self.state.active_effect['name']}")
             self._apply_effect()
+        # Auto-Wechsel des Clips alle N Takte (auf Bar quantisiert)
+        if st.is_bar:
+            self._bar_count += 1
+            eff = self.state.active_effect or {}
+            if str(eff.get("kind", "")).startswith("clip_") and self._bar_count % config.CLIP_AUTO_BARS == 0:
+                self._apply_clip(eff.get("clip_kind", "video"))
+                print(f"  [app] Auto-Wechsel Clip (alle {config.CLIP_AUTO_BARS} Bars)")
 
     def _eff_index(self) -> int:
         active = self.state.active_effect or {}
@@ -115,10 +171,8 @@ class App:
     def _apply_effect(self) -> None:
         eff = self.state.active_effect or {}
         kind = eff.get("kind", "bg")
-        if kind in ("clip_video", "clip_wobble"):
-            self._apply_clip("video")
-        elif kind == "clip_image":
-            self._apply_clip("image")
+        if kind.startswith("clip_"):
+            self._apply_clip(eff.get("clip_kind", "video"))
         else:
             self.state.clip_player = None  # reiner Shader-Hintergrund
 
@@ -150,9 +204,10 @@ class App:
         if symbol == key.SPACE:
             self.state.pending_effect_idx = (self._eff_index() + 1) % len(self.effects)
             return True
-        for num, idx in ((key._1, 0), (key._2, 1), (key._3, 2), (key._4, 3), (key._5, 4)):
-            if symbol == num and idx < len(self.effects):
-                self.state.pending_effect_idx = idx
+        for i in range(9):  # Tasten 1-9
+            k = getattr(key, f"_{i + 1}", None)
+            if k is not None and symbol == k and i < len(self.effects):
+                self.state.pending_effect_idx = i
                 return True
         return False
 
@@ -224,6 +279,9 @@ class App:
         finally:
             if self.source is not None:
                 self.source.stop()
+            if self.out_stream is not None:
+                self.out_stream.stop()
+                self.out_stream.close()
 
 
 def run_app(media_dir, audio_file=None, device=None) -> None:

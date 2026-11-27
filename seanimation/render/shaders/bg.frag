@@ -18,6 +18,9 @@ void main() {
              + vec3(0.1, 0.3, 0.9) * wave * (0.2 + u_bass)
              + vec3(0.9, 0.2, 0.6) * pulse
              + vec3(0.2, 0.9, 0.4) * u_high * 0.15 * sin(u_time * 3.0 + uv.y * 20.0);
+    // langsamer Farbverlauf über die Zeit
+    float hue = 0.5 + 0.5 * sin(u_time * 0.07);
+    col = mix(col, col.bgr, 0.25 * hue);
     // leichte Vignette
     col *= 1.0 - smoothstep(0.4, 0.9, r) * 0.6;
     frag = vec4(col, 1.0);

@@ -1,27 +1,25 @@
-"""Effekt-Registry + MVP-Set der 5 Test-Animationen (ANFORDERUNGEN.md Abschnitt 7).
+"""Effekt-Registry + Effekt-Set (ANFORDERUNGEN.md Abschnitt 7, erweitert v0.6.0).
 
 Jeder Effekt bekommt pro Frame Beat-Phase und Beat-Envelope (Abschnitt 3.3.1).
 
 kind:
   - "bg"            nur generativer Hintergrund-Shader
   - "ring"          Hintergrund + starker Beat-Ring-Overlay
-  - "clip_video"    Video-Clip im Frame-Step (1 Frame pro Beat)
-  - "clip_image"    Bild mit Kick-Puls (Scale/Helligkeit auf dem Beat)
-  - "clip_wobble"   Video/Bild mit Kugel-Wobble-Shader (wackelt pro Beat)
+  - "clip_*"        Clip (video/image laut clip_kind) als Basis; smooth oder Frame-Step
+                    plus Shader-Effekt: wobble / distort (Bass-Warp) / split (RGB-Split)
 """
 
 from __future__ import annotations
 
 EFFECTS_MVP = [
-    {"id": "reactive_bg",     "name": "Reaktiver Hintergrund", "kind": "bg"},
-    {"id": "beat_ring",       "name": "Beat-Ring",             "kind": "ring"},
-    {"id": "video_frame_step","name": "Video Frame-Step",      "kind": "clip_video"},
-    {"id": "image_kick_pulse","name": "Bild Kick-Puls",        "kind": "clip_image"},
-    {"id": "sphere_wobble",   "name": "Kugel-Wobble",          "kind": "clip_wobble"},
+    {"id": "reactive_bg",  "name": "Reaktiver Hintergrund", "kind": "bg"},
+    {"id": "beat_ring",    "name": "Beat-Ring",             "kind": "ring"},
+    {"id": "clip_video",   "name": "Video smooth",          "kind": "clip_video",   "clip_kind": "video"},
+    {"id": "clip_image",   "name": "Bild Kick-Puls",        "kind": "clip_image",   "clip_kind": "image"},
+    {"id": "clip_wobble",  "name": "Kugel-Wobble",          "kind": "clip_wobble",  "clip_kind": "video"},
+    {"id": "clip_distort", "name": "Bass-Warp",             "kind": "clip_distort", "clip_kind": "video"},
+    {"id": "clip_split",   "name": "RGB-Split",             "kind": "clip_split",   "clip_kind": "video"},
 ]
-
-# Tastenkürzel: 1..5
-EFFECT_KEYS = {i + 1: i for i in range(len(EFFECTS_MVP))}
 
 
 class EffectRegistry:

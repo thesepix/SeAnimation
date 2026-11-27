@@ -87,6 +87,7 @@ class Renderer:
             except Exception:
                 pass
         self._gl_error_printed = False
+        self._last_now = 0.0
 
         # Draw-Handler: push_handlers ist der dokumentierte Weg (pyglet 2.x);
         # preview.on_draw setzt die App selbst (GL + UI zusammen)
@@ -141,8 +142,14 @@ class Renderer:
         kind = eff.get("kind", "bg")
 
         # Basis-Layer
-        if kind in ("clip_video", "clip_image", "clip_wobble") and st.clip_player is not None:
-            frame = st.clip_player.get_frame(beat_no)  # Frame-Step: Änderung nur auf dem Beat
+        if kind.startswith("clip_") and st.clip_player is not None:
+            cp = st.clip_player
+            if cp.frames_per_beat > 0:
+                frame = cp.get_frame(beat_no)  # Frame-Step: Änderung nur auf dem Beat
+            else:
+                dt = min(max(now - self._last_now, 0.0), 0.1)  # Smooth: flüssig weiter
+                frame = cp.read_smooth(dt)
+            self._last_now = now
             self._update_clip_texture(g, frame)
             prog = g.prog_clip
             _set(prog, "u_tex", 0)
@@ -150,9 +157,12 @@ class Renderer:
             _set(prog, "u_time", now)
             _set(prog, "u_beat_phase", phase)
             _set(prog, "u_beat_env", env)
-            _set(prog, "u_wobble", 1.0 if kind == "clip_wobble" else 0.0)
+            _set(prog, "u_bass", bass)
             _set(prog, "u_kick", kick)
+            _set(prog, "u_wobble", 1.0 if kind == "clip_wobble" else 0.0)
             _set(prog, "u_pulse", 1.0 if kind == "clip_image" else 0.0)
+            _set(prog, "u_distort", 1.0 if kind == "clip_distort" else 0.0)
+            _set(prog, "u_split", 1.0 if kind == "clip_split" else 0.0)
             g.vao_clip.render(moderngl.TRIANGLES)
         else:
             prog = g.prog_bg
@@ -179,6 +189,8 @@ class Renderer:
         ctx.disable(moderngl.BLEND)
 
     def _update_clip_texture(self, g: _WindowGL, frame: np.ndarray) -> None:
+        # Y-Flip: cv2/PIL liefern top-down, OpenGL erwartet bottom-up (sonst kopfstehend)
+        frame = np.ascontiguousarray(frame[::-1])
         h, w = frame.shape[:2]
         if g.clip_tex is None or g.clip_tex_size != (w, h):
             if g.clip_tex is not None:

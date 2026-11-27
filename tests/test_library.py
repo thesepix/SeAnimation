@@ -58,6 +58,18 @@ class TestClipPlayer(unittest.TestCase):
         self.assertEqual(f5.shape, f0.shape)
         p.close()
 
+    def test_smooth_playback(self):
+        # Smooth-Modus (Default): read_smooth(dt) schaltet flüssig weiter und loopt
+        p = ClipPlayer(self.vid, frames_per_beat=0)
+        self.assertEqual(p.frames_per_beat, 0)
+        f0 = p.read_smooth(0.0)
+        f1 = p.read_smooth(0.5)  # 30 fps * 0,5 s = ~15 Frames weiter (Gradient pro Frame)
+        self.assertEqual(f1.shape, f0.shape)
+        self.assertFalse(np.array_equal(f0, f1))
+        f2 = p.read_smooth(2.0)  # 60 Frames > 30 -> Loop
+        self.assertEqual(f2.shape, f0.shape)
+        p.close()
+
     def test_image(self):
         p = ClipPlayer(self.img)
         self.assertEqual(p.kind, "image")

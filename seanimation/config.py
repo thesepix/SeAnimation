@@ -27,10 +27,13 @@ TARGET_FPS = 60
 MAX_AUDIO_LATENCY_MS = 100
 
 # Beat-Sync-Modell (Abschnitt 3.3 in ANFORDERUNGEN.md)
-FRAME_STEP_BEATS = 1          # Video-Frame-Step: 1 Frame pro N Beats
-FRAMES_PER_BEAT = FRAME_STEP_BEATS
+VIDEO_FRAME_STEP = False      # False = Video flüssig (eigene fps); True = 1 Frame pro Beat
+FRAME_STEP_BEATS = 1          # nur wenn VIDEO_FRAME_STEP=True
+FRAMES_PER_BEAT = FRAME_STEP_BEATS if VIDEO_FRAME_STEP else 0
 DEFAULT_CLIP_LOOP_BEATS = 4   # Standard-Looplänge eines Clips in Beats
+CLIP_AUTO_BARS = 4            # Clip-Effekt wechselt Clip automatisch alle N Takte (auf Bar quantisiert)
 BEAT_DECAY_TAU = 0.25         # Zeitkonstante der Beat-Envelope in Sekunden
+PLAY_FILE_AUDIO = True        # --file-Modus spielt die Datei über die Lautsprecher mit (zusätzlich zur Analyse)
 
 # GUI/Renderer (Abschnitt 3.5)
 PREVIEW_SIZE = (960, 540)
