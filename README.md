@@ -28,6 +28,27 @@ Hinweise:
 - `python -m seanimation` muss aus dem Repo-Ordner laufen (oder nach `pip install -e .` überall).
 - WAV-Dateien auch mit absolutem Pfad angebbar, z. B. `--wav C:\temp\AnnaPainting.wav`.
 
+## Schnellstart ohne Python (fertige Exe) — Ziel-PC braucht nichts installiert
+
+Die Windows-Exe wird automatisch per GitHub Actions gebaut (Workflow `ci`,
+Job `build-exe`, Läuft bei jedem Push/PR):
+
+1. PR öffnen → Tab **Actions** → Lauf des Branches `vibe/anforderungen-1ac69e`
+   → Artifact **`SeAnimation-win64`** herunterladen (enthält die einzelne Datei `SeAnimation.exe`)
+2. Entpacken und testen — **kein Python/git/gh nötig**:
+   ```powershell
+   .\SeAnimation.exe --selftest
+   .\SeAnimation.exe --wav C:\temp\AnnaPainting.wav
+   ```
+
+## Exe lokal bauen (einmalig Python 3.11+ von python.org nötig)
+
+```powershell
+# Python 3.11+ von python.org installieren, Haken "Add python.exe to PATH" setzen
+powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
+# -> dist\SeAnimation.exe (onefile: eine einzige Datei)
+```
+
 ## Entwicklung
 
 - Anforderungsänderungen und Code laufen über **Pull Requests** in diesem Repo

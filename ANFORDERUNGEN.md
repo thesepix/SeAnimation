@@ -154,6 +154,8 @@ portierbar.
 - Headless-Test der Beat-Pipeline (läuft auch ohne Audiohardware/GPU, z. B. in der
   Sandbox): `python -m seanimation --selftest` bzw. `python -m unittest discover -s tests`.
   WAV-Datei als Audioquelle: `python -m seanimation --wav track.wav`.
+- Fertige Exe (kein Python auf dem Ziel-PC): Artefakt `SeAnimation-win64` aus den
+  GitHub Actions des PRs laden, dann `SeAnimation.exe --selftest` / `--wav <datei.wav>`.
 - Entwicklungs-Workflow: Branch `vibe/<slug>-1ac69e` in diesem Repo, Änderungen
   als Draft-PR mit sichtbarem Diff; Review auf GitHub, dann Merge.
 - Fehlerbehebung im Kreislauf: Symptom + Konsolenausgabe melden → Fix im PR → Pull.
@@ -174,3 +176,5 @@ portierbar.
 | v1.0 | Lieferung ausschließlich über GitHub-PR in `thesepix/SeAnimation` |
 | v1.1 | Beat-Tracker als eigene numpy-Implementierung (Onset-Fluss + IOI-Median + Phasen-Snap); aubio/librosa aus requirements entfernt (Installationsrisiko auf Windows), optional in Step 2 |
 | v1.1 | Testquellen ohne Hardware: `SynthSource` (Kick+Click bei BPM) und `WavFileSource`; Selftest via `python -m seanimation --selftest` |
+| v1.2 | Auslieferung als standalone **Exe** via PyInstaller (onedir, Konsole sichtbar) — Ziel-PC braucht kein Python/git/gh; Nuitka als Alternative verworfen (einfacher: PyInstaller) |
+| v1.2 | CI (GitHub Actions `ci.yml`): Unit-Tests auf ubuntu-latest; Exe-Build auf windows-latest als PR-Artefakt `SeAnimation-win64` (Download ohne lokale Installation) |
