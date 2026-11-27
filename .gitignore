@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+.pytest_cache/
+.idea/
+.vscode/
+
+# Lokale Test-Clips (Bilder/Videos) werden nicht versioniert
+media/
+
+# Lokale Config-Overrides
+config.local.py
