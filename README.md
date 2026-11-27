@@ -14,11 +14,19 @@ Voraussetzungen: Python 3.11+ (64-bit) und ein Audio-Gerät (Default wird
 automatisch als WASAPI-Loopback aufgenommen).
 
 ```powershell
-git clone https://github.com/thesepix/SeAnimation.git
+gh repo clone thesepix/SeAnimation   # privates Repo: gh übernimmt die Auth
 cd SeAnimation
-pip install -r requirements.txt
-python -m seanimation
+git checkout vibe/anforderungen-1ac69e
+pip install -r requirements.txt      # oder: pip install -e .
+python -m seanimation --selftest      # Beat-Pipeline ohne Audiohardware testen
+python -m seanimation --wav C:\temp\AnnaPainting.wav   # WAV-Datei durch die Pipeline
 ```
+
+Hinweise:
+- In **Windows PowerShell 5.1** gibt es kein `&&` (nur in PowerShell 7 / `pwsh`)
+  — Befehle einzeln eingeben oder `;` als Trenner verwenden.
+- `python -m seanimation` muss aus dem Repo-Ordner laufen (oder nach `pip install -e .` überall).
+- WAV-Dateien auch mit absolutem Pfad angebbar, z. B. `--wav C:\temp\AnnaPainting.wav`.
 
 ## Entwicklung
 

@@ -60,3 +60,40 @@ def run_selftest(
         print(f"  {last_state}")
         print("  ERGEBNIS: " + ("PASS" if ok else "FAIL"))
     return ok
+
+
+def run_wav_analysis(path, realtime: bool = False, verbose: bool = True, max_beats_print: int = 16) -> dict:
+    """WAV-Datei durch die Pipeline schicken: WavFileSource -> Analyzer -> BeatTracker.
+
+    realtime=False (Default): schneller Durchlauf des ganzen Files, danach
+    erkannte BPM + Beats ausgeben. Aufruf: python -m seanimation --wav <datei.wav>
+    """
+    from .audio.wavfile import WavFileSource
+
+    src = WavFileSource(path, realtime=realtime, loop=False)
+    src.ensure_loaded()  # setzt samplerate
+    sr = src.samplerate
+    q: "queue.Queue" = queue.Queue()
+    src.start(q)
+    analyzer = Analyzer(samplerate=sr)
+    tracker = BeatTracker(samplerate=sr)
+    beats: list[tuple[int, float, float, bool]] = []
+    last_state = None
+    while True:
+        try:
+            block = q.get(timeout=1.0 if realtime else 0.5)
+        except queue.Empty:
+            break
+        for features in analyzer.process(block):
+            st = tracker.update(features, features["time"])
+            if st.beat_number > 0 and (not beats or beats[-1][0] != st.beat_number):
+                beats.append((st.beat_number, st.time_of_last_beat, st.bpm, st.is_bar))
+            last_state = st
+    src.stop()
+    if verbose:
+        print(f"WAV-Analyse: {path} ({sr} Hz)")
+        print(f"  erkannte BPM (Endstand): {tracker.bpm:.2f}")
+        print(f"  erkannte Beats: {len(beats)}")
+        for bn, t, bpm, bar in beats[-max_beats_print:]:
+            print(f"    beat {bn:3d}  t={t:7.3f}s  bpm={bpm:6.1f}  {'BAR' if bar else ''}")
+    return {"bpm": tracker.bpm, "beats": beats, "state": last_state, "samplerate": sr}

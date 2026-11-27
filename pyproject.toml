@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seanimation"
+version = "0.1.0"
+description = "Beat-synchrone Musik-Visuals für Windows 11 (Python + OpenGL)"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+dependencies = [
+    "sounddevice>=0.4.6",
+    "numpy>=1.26",
+    "opencv-python>=4.8",
+    "Pillow>=10.0",
+    "moderngl>=5.8",
+    "moderngl-window>=2.6",
+]
+
+[project.scripts]
+seanimation = "seanimation.main:main"
+
+[tool.setuptools.packages.find]
+include = ["seanimation*"]

@@ -30,6 +30,7 @@ class WavFileSource(AudioSource):
         self.realtime = realtime
         self.loop = loop
         self.samplerate: int = 0
+        self._data: np.ndarray | None = None
         self._stop = False
         self._thread: threading.Thread | None = None
 
@@ -50,10 +51,19 @@ class WavFileSource(AudioSource):
             raise ValueError(
                 f"Nicht unterstützte Sample-Breite: {sampwidth} Bytes (nur PCM 8/16/32 bit)"
             )
-        return data.reshape(-1, channels)
+        arr = data.reshape(-1, channels)
+        self._data = arr
+        return arr
+
+    def ensure_loaded(self) -> np.ndarray:
+        """Daten laden (einmalig gecacht) und samplerate setzen — vor start() aufrufen,
+        damit die Samplerate für den Analyzer bekannt ist."""
+        if self._data is None:
+            self.load()
+        return self._data
 
     def start(self, out_queue: "queue.Queue[np.ndarray]") -> None:
-        data = self.load()
+        data = self.ensure_loaded()
         self._stop = False
 
         def run() -> None:
