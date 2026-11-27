@@ -66,7 +66,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin dist-exe 2>$null
           if ($LASTEXITCODE -eq 0) { git checkout -B dist-exe origin/dist-exe } else { git checkout -b dist-exe }
-          mkdir -p bin
+          New-Item -ItemType Directory -Force -Path bin | Out-Null
           Copy-Item dist\SeAnimation.exe bin\SeAnimation.exe -Force
           git add bin/SeAnimation.exe
           git commit -m "ci: SeAnimation.exe (build $env:GITHUB_SHA)" || Write-Host "nichts Neues zu committen"
