@@ -115,24 +115,30 @@ def device_name(device: int) -> str:
 
 
 def get_default_source(device: Optional[int] = None) -> AudioSource:
-    """MVP: WASAPI-Loopback der Default-Ausgabe ('Was du hörst').
+    """MVP: Loopback der Default-Ausgabe ('Was du hörst').
 
-    device=None -> Loopback-Gerät der Default-Ausgabe automatisch finden.
-    Wirft RuntimeError mit Hinweis, wenn keines existiert (dann 'Stereo Mix'
-    aktivieren oder VB-Audio Virtual Cable installieren, oder --file nutzen).
+    Kette: (1) --device N -> PortAudio mit diesem Index; (2) PortAudio-Loopback
+    automatisch finden; (3) Fallback: pycaw/Windows-Core-Audio-Loopback an der
+    Default-Render-Endpoint (funktioniert auf Win11 auch wenn PortAudio keine
+    Loopback-Geräte listet).
     """
     from .loopback import LoopbackSource
 
-    if device is None:
-        device = find_loopback_device(verbose=True)
-        if device is None:
-            raise RuntimeError(
-                "Kein WASAPI-Loopback-Gerät gefunden. Optionen: (1) --list-devices ausführen "
-                "und das Loopback-Gerät per --device N wählen, (2) in den Windows-Soundeinstellungen "
-                "unter Aufnahme 'Stereo Mix'/'Was du hörst' aktivieren, (3) VB-Audio Virtual Cable "
-                "installieren, (4) App mit --file <track> starten."
-            )
-    return LoopbackSource(device=device)
+    if device is not None:
+        return LoopbackSource(device=device)
+    idx = find_loopback_device(verbose=True)
+    if idx is not None:
+        return LoopbackSource(device=idx)
+    try:
+        from .wasapi_loopback import WasapiLoopbackSource
+
+        return WasapiLoopbackSource()
+    except ImportError as e:
+        raise RuntimeError(
+            "Kein Loopback möglich: PortAudio listet kein Loopback-Gerät und pycaw/comtypes "
+            "konnte nicht importiert werden. Bitte 'pip install pycaw comtypes' (nur Windows) "
+            "oder --file <track> nutzen."
+        ) from e
 
 
 def list_input_devices() -> list[dict]:

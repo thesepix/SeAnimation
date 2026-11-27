@@ -34,6 +34,15 @@ def _load_frag(name: str) -> str:
     return (SHADER_DIR / name).read_text(encoding="utf-8")
 
 
+def _set(prog, name: str, value) -> None:
+    """Uniform setzen, falls vorhanden — der GL-Treiber optimiert unbenutzte
+    Uniforms weg, dann gäbe es sonst KeyError."""
+    try:
+        prog[name] = value
+    except KeyError:
+        pass
+
+
 class Renderer:
     def __init__(self, state, preview_size=(960, 540), output_size=(1280, 720)):
         """state: AppState (features, beat_state, active_effect, clip_player, ...)."""
@@ -109,36 +118,36 @@ class Renderer:
             frame = st.clip_player.get_frame(beat_no)  # Frame-Step: Änderung nur auf dem Beat
             self._update_clip_texture(frame)
             prog = self.prog_clip
-            prog["u_tex"] = 0
-            prog["u_res"] = (win.width, win.height)
-            prog["u_time"] = now
-            prog["u_beat_phase"] = phase
-            prog["u_beat_env"] = env
-            prog["u_wobble"] = 1.0 if kind == "clip_wobble" else 0.0
-            prog["u_kick"] = kick
-            prog["u_pulse"] = 1.0 if kind == "clip_image" else 0.0
+            _set(prog, "u_tex", 0)
+            _set(prog, "u_res", (win.width, win.height))
+            _set(prog, "u_time", now)
+            _set(prog, "u_beat_phase", phase)
+            _set(prog, "u_beat_env", env)
+            _set(prog, "u_wobble", 1.0 if kind == "clip_wobble" else 0.0)
+            _set(prog, "u_kick", kick)
+            _set(prog, "u_pulse", 1.0 if kind == "clip_image" else 0.0)
             self.vao_clip.render(moderngl.TRIANGLES)
         else:
             prog = self.prog_bg
-            prog["u_res"] = (win.width, win.height)
-            prog["u_time"] = now
-            prog["u_beat_phase"] = phase
-            prog["u_beat_env"] = env
-            prog["u_bass"] = bass
-            prog["u_mid"] = mid
-            prog["u_high"] = high
-            prog["u_kick"] = kick
+            _set(prog, "u_res", (win.width, win.height))
+            _set(prog, "u_time", now)
+            _set(prog, "u_beat_phase", phase)
+            _set(prog, "u_beat_env", env)
+            _set(prog, "u_bass", bass)
+            _set(prog, "u_mid", mid)
+            _set(prog, "u_high", high)
+            _set(prog, "u_kick", kick)
             self.vao_bg.render(moderngl.TRIANGLES)
 
         # Overlay: Beat-Ring (stärker im "ring"-Effekt)
         ctx.enable(moderngl.BLEND)
         ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE  # additiv
         prog = self.prog_overlay
-        prog["u_res"] = (win.width, win.height)
-        prog["u_time"] = now
-        prog["u_beat_env"] = env
-        prog["u_kick"] = kick
-        prog["u_strength"] = 1.6 if kind == "ring" else 0.7
+        _set(prog, "u_res", (win.width, win.height))
+        _set(prog, "u_time", now)
+        _set(prog, "u_beat_env", env)
+        _set(prog, "u_kick", kick)
+        _set(prog, "u_strength", 1.6 if kind == "ring" else 0.7)
         self.vao_overlay.render(moderngl.TRIANGLES)
         ctx.disable(moderngl.BLEND)
 

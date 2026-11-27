@@ -27,7 +27,7 @@ for pkg in ("sounddevice", "soundfile"):
 
 # Die meisten Imports (cv2, sounddevice, moderngl, ...) werden von der statischen
 # Analyse automatisch gefunden; pyglet braucht Submodules (inkl. GL-Backends).
-hiddenimports = ["numpy", "soundfile", "sounddevice"]
+hiddenimports = ["numpy", "soundfile", "sounddevice", "pycaw", "pycaw.pycaw", "comtypes"]
 try:
     hiddenimports += collect_submodules("pyglet")
 except Exception:

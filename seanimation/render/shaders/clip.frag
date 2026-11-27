@@ -13,7 +13,7 @@ void main() {
     c /= zoom;
     // Kugel-Wobble: UVs auf Kugel projizieren, Radius wackelt mit Beat-Envelope
     if (u_wobble > 0.001) {
-        float wob = u_wobble * u_beat_env * 0.25;
+        float wob = u_wobble * u_beat_env * (0.2 + 0.05 * sin(u_beat_phase * 6.2831));
         float r = length(c) * (1.0 + wob * sin(u_time * 10.0));
         float z = sqrt(max(0.0, 1.0 - r * r));
         vec2 suv = c * (2.0 / max(0.6, 1.0 + z)) * 0.5 + 0.5;  // Kugel-Projektion

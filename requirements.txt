@@ -17,3 +17,8 @@ Pillow>=10.0
 # Rendering: OpenGL-Fenster (zwei Fenster: Preview + Ausgabe), Shader, Input
 moderngl>=5.8
 pyglet>=2.0
+
+# Windows only: Loopback-Capture direkt über Core Audio (Fallback wenn PortAudio
+# keine Loopback-Geräte listet — auf vielen Win11-Systemen der Fall)
+pycaw; sys_platform == "win32"
+comtypes; sys_platform == "win32"

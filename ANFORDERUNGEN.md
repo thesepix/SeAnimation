@@ -191,3 +191,4 @@ portierbar.
 | v1.6 | v0.4.1: MEDIA_DIR in der gefrorenen Exe = `<exe-dir>/media` (vorher PyInstaller-Temp — Clips wären nicht gefunden worden) |
 | v1.7 | v0.4.2: Loopback automatisch als Loopback-Gerät der Default-Ausgabe (vorher Default-Eingang = Mikrofon); media/ wird neben der Exe angelegt; GUI mit mehr Konsolen-Logs + freundlichem Fehler |
 | v1.7 | v0.4.3: GUI öffnet Fenster **vor** Audio-Start (Audio-Fehler nicht mehr fatal, Anzeige im Preview); `--list-devices` + `--device N` zum manuellen Wählen; Loopback-Matching unscharf (Name enthält Ausgabe-Name) |
+| v1.8 | v0.4.4: Live-Loopback als Fallback direkt über Windows Core Audio (pycaw, `AUDCLNT_STREAMFLAGS_LOOPBACK` an der Default-Render-Endpoint) — PortAudio listet auf vielen Win11-PCs keine Loopback-Geräte; GL-Fix: unbenutzte Uniforms (u_beat_phase) werden vom Treiber entfernt → KeyError-Crash im ersten Frame, jetzt defensive gesetzte + wirklich benutzte Uniforms |

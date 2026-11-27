@@ -12,8 +12,8 @@ void main() {
     // Bass-Wellen
     float wave = sin(r * 40.0 - u_time * (2.0 + 8.0 * u_bass) + u_mid * 6.0) * 0.5 + 0.5;
     wave *= exp(-r * (3.0 - 2.0 * u_bass));
-    // Beat-Puls von innen
-    float pulse = u_beat_env * exp(-r * 6.0);
+    // Beat-Puls von innen (u_beat_phase für feine Modulation innerhalb des Beats)
+    float pulse = u_beat_env * exp(-r * 6.0) * (0.85 + 0.15 * sin(u_beat_phase * 6.2831));
     vec3 col = vec3(0.02, 0.02, 0.05)
              + vec3(0.1, 0.3, 0.9) * wave * (0.2 + u_bass)
              + vec3(0.9, 0.2, 0.6) * pulse
