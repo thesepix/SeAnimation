@@ -17,6 +17,13 @@ from seanimation.audio.synth import SynthSource
 from seanimation.audio.wavfile import WavFileSource
 from seanimation.devtest import run_selftest
 
+try:
+    import soundfile as sf
+    from seanimation.audio.file import AudioFileSource
+    HAS_SOUNDFILE = True
+except ImportError:
+    HAS_SOUNDFILE = False
+
 
 def run_pipeline(bpm: float, duration: float, samplerate: int = 48000):
     """Synth-Signal -> Analyzer -> BeatTracker; liefert (tracker, letzter BeatState)."""
@@ -140,6 +147,37 @@ class TestWavFileSource(unittest.TestCase):
             self.assertEqual(arr.shape, (sr // 2, 1))
             self.assertEqual(src.samplerate, sr)
             self.assertTrue(np.allclose(arr[:, 0], x, atol=1e-5))
+        finally:
+            os.unlink(path)
+
+
+@unittest.skipUnless(HAS_SOUNDFILE, "soundfile nicht installiert")
+class TestAudioFileSource(unittest.TestCase):
+    def test_load_flac(self):
+        # FLAC-Roundtrip: über soundfile schreiben und lesen (Format wie die
+        # echten Test-Files des Users: FLAC/MP3 statt WAV)
+        sr = 44100
+        t = np.arange(sr // 2) / sr
+        x = 0.5 * np.sin(2 * np.pi * 440.0 * t)
+        fd, path = tempfile.mkstemp(suffix=".flac")
+        os.close(fd)
+        try:
+            sf.write(path, x.astype(np.float32), sr, format="FLAC")
+            src = AudioFileSource(path)
+            arr = src.load()
+            self.assertEqual(arr.shape, (sr // 2, 1))
+            self.assertEqual(src.samplerate, sr)
+            self.assertTrue(np.allclose(arr[:, 0], x, atol=1e-4))
+        finally:
+            os.unlink(path)
+
+    def test_unsupported_format_raises(self):
+        fd, path = tempfile.mkstemp(suffix=".txt")
+        os.write(fd, b"kein audio")
+        os.close(fd)
+        try:
+            with self.assertRaises(Exception):
+                AudioFileSource(path).load()
         finally:
             os.unlink(path)
 

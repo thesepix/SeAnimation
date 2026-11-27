@@ -10,15 +10,17 @@
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 datas = [("seanimation/render/shaders", "seanimation/render/shaders")]
-try:
-    # PortAudio-DLL aus dem sounddevice-Wheel mitnehmen
-    datas += collect_data_files("sounddevice")
-except Exception:
-    pass
+for pkg in ("sounddevice", "soundfile"):
+    try:
+        # gebundelte Binaries mitnehmen: PortAudio-DLL (sounddevice),
+        # libsndfile (soundfile) für WAV/FLAC/MP3/OGG-Dekodierung
+        datas += collect_data_files(pkg)
+    except Exception:
+        pass
 
 # Die meisten Imports (cv2, sounddevice, moderngl, ...) werden von der statischen
 # Analyse automatisch gefunden; pyglet braucht Submodules (inkl. GL-Backends).
-hiddenimports = ["numpy"]
+hiddenimports = ["numpy", "soundfile", "sounddevice"]
 try:
     hiddenimports += collect_submodules("pyglet")
 except Exception:

@@ -153,7 +153,7 @@ portierbar.
   `git clone` → `pip install -r requirements.txt` → `python -m seanimation`.
 - Headless-Test der Beat-Pipeline (läuft auch ohne Audiohardware/GPU, z. B. in der
   Sandbox): `python -m seanimation --selftest` bzw. `python -m unittest discover -s tests`.
-  WAV-Datei als Audioquelle: `python -m seanimation --wav track.wav`.
+  Audio-Datei als Quelle: `python -m seanimation --file track.flac` (WAV/FLAC/MP3/OGG via soundfile; `--wav` als Alias).
 - Fertige Exe (kein Python auf dem Ziel-PC): Artefakt `SeAnimation-win64` aus den
   GitHub Actions des PRs laden, dann `SeAnimation.exe --selftest` / `--wav <datei.wav>`.
 - Entwicklungs-Workflow: Branch `vibe/<slug>-1ac69e` in diesem Repo, Änderungen
@@ -178,3 +178,4 @@ portierbar.
 | v1.1 | Testquellen ohne Hardware: `SynthSource` (Kick+Click bei BPM) und `WavFileSource`; Selftest via `python -m seanimation --selftest` |
 | v1.2 | Auslieferung als standalone **Exe** via PyInstaller (onedir, Konsole sichtbar) — Ziel-PC braucht kein Python/git/gh; Nuitka als Alternative verworfen (einfacher: PyInstaller) |
 | v1.2 | CI (GitHub Actions `ci.yml`): Unit-Tests auf ubuntu-latest; Exe-Build auf windows-latest. Lieferung: PR-Artefakt `SeAnimation-win64`, Fallback bei Artifact-Quota: Bot committet `bin/SeAnimation.exe` auf Branch `dist-exe` (Browser-Download) |
+| v1.3 | Datei-Quellen: `AudioFileSource` via soundfile/libsndfile (WAV/FLAC/MP3/OGG — Nutzer hat v. a. FLAC/MP3); `WavFileSource` (stdlib, PCM 8/16/24/32 bit) bleibt als Fallback; CLI: `--file` (Alias `--wav`) |

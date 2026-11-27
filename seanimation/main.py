@@ -26,10 +26,12 @@ def main() -> None:
         help="Beat-Pipeline gegen synthetisches Klick-Signal testen (ohne Audiohardware)",
     )
     parser.add_argument(
-        "--wav",
+        "--file",
+        "--wav",  # Alias aus Kompatibilitätsgründen
+        dest="audio_file",
         metavar="PFAD",
         default=None,
-        help="WAV-Datei als Audioquelle statt WASAPI-Loopback",
+        help="Audio-Datei (WAV/FLAC/MP3/OGG/...) als Quelle statt WASAPI-Loopback",
     )
     parser.add_argument(
         "--bpm",
@@ -45,16 +47,16 @@ def main() -> None:
         ok = run_selftest(bpm=args.bpm)
         raise SystemExit(0 if ok else 1)
 
-    if args.wav:
-        from .devtest import run_wav_analysis
+    if args.audio_file:
+        from .devtest import run_file_analysis
 
-        result = run_wav_analysis(args.wav)
+        result = run_file_analysis(args.audio_file)
         raise SystemExit(0 if result["beats"] else 1)
 
     print(f"SeAnimation {__version__} – Projektgerüst")
     print("Audioquelle: WASAPI-Loopback (Standard-Audiogerät)")
     print("TODO(MVP): Vollständige Pipeline mit Renderer/UI starten.")
-    print("Headless-Tests: python -m seanimation --selftest | --wav <datei.wav> | Doku: ANFORDERUNGEN.md")
+    print("Headless-Tests: python -m seanimation --selftest | --file <track.flac/mp3/wav> | Doku: ANFORDERUNGEN.md")
     # TODO(MVP): Quelle wählen (Loopback/WAV), Queue befüllen, Analyzer +
     # BeatTracker in Schleife, Scheduler initialisieren, Renderer mit
     # Preview- und Ausgabefenster öffnen, UI verdrahten, Event-Loop starten.

@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 license = { text = "GPL-3.0-only" }
 dependencies = [
     "sounddevice>=0.4.6",
+    "soundfile>=0.12.1",
     "numpy>=1.26",
     "opencv-python>=4.8",
     "Pillow>=10.0",

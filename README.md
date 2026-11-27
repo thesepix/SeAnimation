@@ -18,15 +18,17 @@ gh repo clone thesepix/SeAnimation   # privates Repo: gh übernimmt die Auth
 cd SeAnimation
 git checkout vibe/anforderungen-1ac69e
 pip install -r requirements.txt      # oder: pip install -e .
-python -m seanimation --selftest      # Beat-Pipeline ohne Audiohardware testen
-python -m seanimation --wav C:\temp\AnnaPainting.wav   # WAV-Datei durch die Pipeline
+python -m seanimation --selftest        # Beat-Pipeline ohne Audiohardware testen
+python -m seanimation --file C:\temp\AnnaPainting.flac   # Audio-Datei durch die Pipeline
 ```
+
+`--file` dekodiert via libsndfile: **WAV, FLAC, MP3, OGG** u. a. (`--wav` geht als Alias weiter).
 
 Hinweise:
 - In **Windows PowerShell 5.1** gibt es kein `&&` (nur in PowerShell 7 / `pwsh`)
   — Befehle einzeln eingeben oder `;` als Trenner verwenden.
 - `python -m seanimation` muss aus dem Repo-Ordner laufen (oder nach `pip install -e .` überall).
-- WAV-Dateien auch mit absolutem Pfad angebbar, z. B. `--wav C:\temp\AnnaPainting.wav`.
+- Dateien auch mit absolutem Pfad angebbar, z. B. `--file C:\temp\track.mp3`.
 
 ## Schnellstart ohne Python (fertige Exe) — Ziel-PC braucht nichts installiert
 
@@ -40,7 +42,7 @@ Job `build-exe`, Läuft bei jedem Push/PR):
 3. Testen — **kein Python/git/gh nötig**:
    ```powershell
    .\SeAnimation.exe --selftest
-   .\SeAnimation.exe --wav C:\temp\AnnaPainting.wav
+   .\SeAnimation.exe --file C:\temp\AnnaPainting.flac
    ```
 
 ## Exe lokal bauen (einmalig Python 3.11+ von python.org nötig)

@@ -62,15 +62,27 @@ def run_selftest(
     return ok
 
 
-def run_wav_analysis(path, realtime: bool = False, verbose: bool = True, max_beats_print: int = 16) -> dict:
-    """WAV-Datei durch die Pipeline schicken: WavFileSource -> Analyzer -> BeatTracker.
+def _make_file_source(path, realtime: bool):
+    """AudioFileSource (soundfile: WAV/FLAC/MP3/OGG/...), Fallback: WavFileSource."""
+    try:
+        import soundfile  # noqa: F401
 
-    realtime=False (Default): schneller Durchlauf des ganzen Files, danach
-    erkannte BPM + Beats ausgeben. Aufruf: python -m seanimation --wav <datei.wav>
+        from .audio.file import AudioFileSource
+
+        return AudioFileSource(path, realtime=realtime, loop=False)
+    except ImportError:
+        from .audio.wavfile import WavFileSource
+
+        return WavFileSource(path, realtime=realtime, loop=False)
+
+
+def run_file_analysis(path, realtime: bool = False, verbose: bool = True, max_beats_print: int = 16) -> dict:
+    """Audio-Datei (WAV/FLAC/MP3/...) durch die Pipeline: FileSource -> Analyzer -> BeatTracker.
+
+    realtime=False (Default): schneller Durchlauf der ganzen Datei, danach
+    erkannte BPM + Beats ausgeben. Aufruf: python -m seanimation --file <datei>
     """
-    from .audio.wavfile import WavFileSource
-
-    src = WavFileSource(path, realtime=realtime, loop=False)
+    src = _make_file_source(path, realtime=realtime)
     src.ensure_loaded()  # setzt samplerate
     sr = src.samplerate
     q: "queue.Queue" = queue.Queue()
@@ -91,9 +103,13 @@ def run_wav_analysis(path, realtime: bool = False, verbose: bool = True, max_bea
             last_state = st
     src.stop()
     if verbose:
-        print(f"WAV-Analyse: {path} ({sr} Hz)")
+        print(f"Datei-Analyse: {path} ({sr} Hz)")
         print(f"  erkannte BPM (Endstand): {tracker.bpm:.2f}")
         print(f"  erkannte Beats: {len(beats)}")
         for bn, t, bpm, bar in beats[-max_beats_print:]:
             print(f"    beat {bn:3d}  t={t:7.3f}s  bpm={bpm:6.1f}  {'BAR' if bar else ''}")
     return {"bpm": tracker.bpm, "beats": beats, "state": last_state, "samplerate": sr}
+
+
+# Rückwärtskompatibler Alias (alt: --wav)
+run_wav_analysis = run_file_analysis
