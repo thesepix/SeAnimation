@@ -1,0 +1,19 @@
+# SeAnimation – Python-Abhängigkeiten (Windows 11, Python 3.11+)
+
+# Audio-Capture: WASAPI-Loopback unter Windows (PortAudio)
+sounddevice>=0.4.6
+
+# Numerik / Spektrum (FFT, Band-Energien)
+numpy>=1.26
+scipy>=1.11
+
+# Beat-/Tempo-Erkennung (Fallback: librosa)
+aubio>=0.4.9
+
+# Video-/Bild-Dekodierung und Thumbnails
+opencv-python>=4.8
+Pillow>=10.0
+
+# Rendering: OpenGL-Fenster (zwei Fenster: Preview + Ausgabe), Shader, Input
+moderngl>=5.8
+moderngl-window>=2.6
