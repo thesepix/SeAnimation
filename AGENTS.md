@@ -49,14 +49,29 @@ media/                  user's clips (NOT versioned, see .gitignore) — next to
 ## Commands
 
 ```bash
-pip install -r requirements.txt        # dev setup (Python 3.11+)
+pip install -r requirements.txt        # dev setup (Python 3.11+, pinned versions)
+python tools/check.py                  # ONE command before every commit: syntax + tests + selftest
 python -m unittest discover -s tests -v # test suite (headless-safe)
 python -m seanimation --selftest        # beat pipeline self-test (no audio hardware)
 python -m seanimation --analyze --file track.flac   # CLI file analysis
 python -m seanimation --file track.mp3  # GUI + file audio (plays through speakers)
 python -m seanimation                   # GUI + WASAPI loopback (live, win32 only)
+python -m seanimation --shot out.png --file tests/assets/beat_124bpm.wav --effect 0
+                                        # headless render -> PNG (needs GPU, Windows desktop;
+                                        # without --file a synth signal at --bpm is used)
 pyinstaller seanimation.spec --clean --noconfirm   # local exe build -> dist/
 ```
+
+## Doc map (read before changing behaviour)
+
+- `AGENTS.md` — this file (rules for AI agents)
+- `HANDOVER.md` — current task, last known good state, tried-and-failed list,
+  open issues, environment notes (update after every work step!)
+- `CHANGELOG.md` — version history (Keep a Changelog); add entries under Unreleased
+- `ANFORDERUNGEN.md` — full requirements + architecture + decision log (German)
+- `PROJEKT.md` — 1-minute summary for external AIs
+- `CONTRIBUTING.md` — PR workflow, mandatory checks, release process
+- `README.md` — user-facing quickstart
 
 ## Hard rules
 
@@ -97,7 +112,18 @@ pyinstaller seanimation.spec --clean --noconfirm   # local exe build -> dist/
 
 ## Definition of done for a change
 
-- `python -m unittest discover -s tests -v` green + `--selftest` PASS.
+- `python tools/check.py` PASS (syntax + unittest + selftest).
 - Docs updated if behaviour/CLI changed (`README.md`, `ANFORDERUNGEN.md` log).
 - PR description filled from `.github/PULL_REQUEST_TEMPLATE.md`, linked to an
   issue if one exists (`Closes #N`).
+- `HANDOVER.md` "Aktuelle Aufgabe" updated; `CHANGELOG.md` entry added.
+
+## Environment notes (agent sandbox only — not project facts)
+
+- The agent works only in an isolated Linux clone at
+  `/workspace/github__thesepix__SeAnimation`; the user's Mac is never touched.
+- No GPU/audio/COM in the sandbox: GL and pycaw code is only `py_compile`-checked
+  here; the human tests on the Win11 desktop with the release exe.
+- `gh` is authenticated, but PR/repo-setting mutations are blocked for the agent
+  ("Merging pull requests via CLI is not allowed") — the human merges in the web UI.
+- `curl` is forbidden in the sandbox (use the web tools).

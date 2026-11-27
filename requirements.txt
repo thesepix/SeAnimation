@@ -1,24 +1,13 @@
-# SeAnimation – Python-Abhängigkeiten (Windows 11, Python 3.11+)
-
-# Audio-Capture: WASAPI-Loopback unter Windows (PortAudio)
-sounddevice>=0.4.6
-
-# Datei-Dekodierung: WAV/FLAC/MP3/OGG/... via libsndfile (gebundelt im Wheel)
-soundfile>=0.12.1
-
-# Numerik: FFT, Band-Energien, eigener Beat-/Tempo-Tracker (numpy-only —
-# kein aubio nötig, um Installationsrisiko auf Windows zu vermeiden)
-numpy>=1.26
-
-# Video-/Bild-Dekodierung und Thumbnails
-opencv-python>=4.8
-Pillow>=10.0
-
-# Rendering: OpenGL-Fenster (zwei Fenster: Preview + Ausgabe), Shader, Input
-moderngl>=5.8
-pyglet>=2.0
-
-# Windows only: Loopback-Capture direkt über Core Audio (Fallback wenn PortAudio
-# keine Loopback-Geräte listet — auf vielen Win11-Systemen der Fall)
-pycaw; sys_platform == "win32"
-comtypes; sys_platform == "win32"
+# SeAnimation — gepinnte, getestete Versionen (Stand v0.8.0, siehe CHANGELOG.md).
+# Installation:  pip install -r requirements.txt     (Python 3.11, 64-bit)
+# pyproject.toml hält die kompatiblen Bereiche (>=) für die Paket-Metadaten.
+numpy==2.5.5
+sounddevice==0.5.6
+soundfile==0.14.0
+opencv-python==5.1.0.95
+Pillow==13.0.0
+moderngl==5.13.0
+pyglet==2.1.19
+# nur Windows (WASAPI-Loopback via Core Audio / pycaw):
+pycaw>=0.6.1; sys_platform == 'win32'
+comtypes>=1.4.0; sys_platform == 'win32'

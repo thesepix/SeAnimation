@@ -184,3 +184,105 @@ def run_tap_mode(path=None, verbose: bool = True) -> dict:
     if verbose:
         print(f"Ende: bpm={tracker.bpm:.2f}, beats={tracker._beat_number}")
     return {"bpm": tracker.bpm, "beats": tracker._beat_number}
+
+
+def run_shot(
+    out_path,
+    audio_file=None,
+    frames: int = 120,
+    effect_idx: int = 0,
+    size=(1280, 720),
+    bpm: float = 124.0,
+    fps: float = 60.0,
+    media_dir=None,
+    verbose: bool = True,
+) -> bool:
+    """Headless-Render: rendert `frames` Frames in ein unsichtbares Fenster und
+    speichert das letzte Frame als PNG (z. B. Referenz-Screenshots für Doku/KI).
+
+    Ohne audio_file wird ein Synth-Signal (bpm) verwendet — braucht keine
+    Audiohardware, aber eine GPU (Windows-Desktop). Läuft NICHT in der CI-Sandbox.
+    """
+    from types import SimpleNamespace
+
+    import numpy as np
+
+    from . import config
+    from .analysis.analyzer import Analyzer
+    from .analysis.beat import BeatTracker
+    from .library.clip_player import ClipPlayer
+    from .library.library import Library
+    from .render.effects import EffectRegistry
+    from .render.renderer import Renderer
+
+    if audio_file:
+        import soundfile as sf
+
+        data, sr = sf.read(audio_file, dtype="float32", always_2d=True)
+        data = np.ascontiguousarray(data)
+        src_label = f"Datei {audio_file}"
+    else:
+        from .audio.synth import SynthSource
+
+        sr = 44100
+        sig = SynthSource(bpm=bpm, samplerate=sr, duration=max(8.0, frames / fps + 1.0), realtime=False).generate()
+        data = np.ascontiguousarray(np.stack([sig, sig], axis=1))
+        src_label = f"Synth {bpm:.1f} BPM"
+    if verbose:
+        print(f"Shot: {frames} Frames @ {fps:.0f} fps, {size[0]}x{size[1]}, Audio: {src_label}, Effekt #{effect_idx}")
+
+    analyzer = Analyzer(samplerate=sr)
+    tracker = BeatTracker(samplerate=sr)
+    effects = EffectRegistry()
+    state = SimpleNamespace(
+        features=None, beat_state=None, last_time=0.0,
+        active_effect=effects.get(effect_idx), pending_effect_idx=None,
+        clip_player=None, clip_path=None, pending_clip_override=None,
+        audio_error=None, running=True,
+    )
+    eff = state.active_effect
+    if str(eff.get("kind", "")).startswith("clip_"):
+        lib = Library(media_dir or config.MEDIA_DIR)
+        lib.scan()
+        clip = lib.next_clip(eff.get("clip_kind", "video"))
+        if clip is not None:
+            state.clip_player = ClipPlayer(clip.path, frames_per_beat=config.FRAMES_PER_BEAT, prefetch=False)
+            if verbose:
+                print(f"  [shot] Clip: {clip.path.name}")
+        elif verbose:
+            print("  [shot] kein Clip in media/ gefunden — nur Shader-Hintergrund")
+
+    renderer = Renderer(state, size, size, visible=False, with_output=False)
+    win = renderer.preview
+    bs = config.AUDIO_BLOCKSIZE
+    pos = 0
+    try:
+        for i in range(frames):
+            target = int((i + 1) / fps * sr)
+            while pos < min(target, len(data)):
+                block = data[pos : pos + bs]
+                pos += len(block)
+                for f in analyzer.process(block):
+                    st = tracker.update(f, f["time"])
+                    state.features = f
+                    state.beat_state = st
+                    state.last_time = f["time"]
+            win.switch_to()
+            renderer._render_gl(win)  # direkt, ohne Frame-Limiter/Throttle
+        win.switch_to()
+        g = renderer.gl[win]
+        raw = g.ctx.screen.read(components=3, alignment=1)
+        from PIL import Image
+
+        img = Image.frombytes("RGB", (win.width, win.height), raw).transpose(Image.FLIP_TOP_BOTTOM)
+        img.save(out_path)
+        if verbose:
+            print(f"  [shot] BPM erkannt: {tracker.bpm:.1f} | gespeichert: {out_path} ({img.size[0]}x{img.size[1]} PNG)")
+        return True
+    finally:
+        if state.clip_player is not None:
+            state.clip_player.close()
+        try:
+            win.close()
+        except Exception:
+            pass

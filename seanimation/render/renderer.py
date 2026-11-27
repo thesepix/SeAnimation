@@ -66,23 +66,32 @@ class _WindowGL:
 
 
 class Renderer:
-    def __init__(self, state, preview_size=(960, 540), output_size=(1280, 720)):
-        """state: AppState (features, beat_state, active_effect, clip_player, ...)."""
+    def __init__(self, state, preview_size=(960, 540), output_size=(1280, 720), visible=True, with_output=True):
+        """state: AppState (features, beat_state, active_effect, clip_player, ...).
+
+        visible=False + with_output=False: nur ein unsichtbares Fenster
+        (für --shot: Headless-Render als PNG, siehe devtest.run_shot).
+        """
         self.state = state
         self.preview = pyglet.window.Window(
-            preview_size[0], preview_size[1], "SeAnimation – Preview", resizable=True
+            preview_size[0], preview_size[1], "SeAnimation – Preview", resizable=True, visible=visible
         )
-        self.output = pyglet.window.Window(
-            output_size[0], output_size[1], "SeAnimation – Ausgabe", resizable=True
-        )
-        try:
-            self.output.borderless = True  # randlos für OBS Window Capture / Fullscreen
-        except Exception:
-            pass
+        self.output = None
+        if with_output:
+            self.output = pyglet.window.Window(
+                output_size[0], output_size[1], "SeAnimation – Ausgabe", resizable=True, visible=visible
+            )
+            try:
+                self.output.borderless = True  # randlos für OBS Window Capture / Fullscreen
+            except Exception:
+                pass
 
         # pro Fenster eigener GL-Kontext + Ressourcen
-        self.gl = {self.preview: _WindowGL(self.preview), self.output: _WindowGL(self.output)}
-        for name, g in (("preview", self.gl[self.preview]), ("output", self.gl[self.output])):
+        wins = [self.preview] + ([self.output] if self.output is not None else [])
+        self.gl = {w: _WindowGL(w) for w in wins}
+        for name, g in [("preview", self.gl[self.preview])] + (
+            [("output", self.gl[self.output])] if self.output is not None else []
+        ):
             try:
                 info = g.ctx.info
                 print(f"  [render] GL[{name}]: {info.get('GL_RENDERER')} | {info.get('GL_VERSION')}")
@@ -97,7 +106,8 @@ class Renderer:
 
         # Draw-Handler: push_handlers ist der dokumentierte Weg (pyglet 2.x);
         # preview.on_draw setzt die App selbst (GL + UI zusammen)
-        self.output.push_handlers(on_draw=self._on_draw_output)
+        if self.output is not None:
+            self.output.push_handlers(on_draw=self._on_draw_output)
 
     # ---------- Fenster-Events ----------
     def _throttle(self, key: str) -> bool:
@@ -115,7 +125,7 @@ class Renderer:
         self._safe_render_gl(self.preview)
 
     def _on_draw_output(self):
-        if self._throttle("output"):
+        if self.output is None or self._throttle("output"):
             return
         self.output.switch_to()
         self._safe_render_gl(self.output)
@@ -132,6 +142,8 @@ class Renderer:
                 self._gl_error_printed = True
 
     def toggle_fullscreen(self):
+        if self.output is None:
+            return
         try:
             self.output.fullscreen = not self.output.fullscreen
         except Exception:
