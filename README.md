@@ -1,5 +1,8 @@
 # SeAnimation
 
+[![CI](https://github.com/thesepix/SeAnimation/actions/workflows/ci.yml/badge.svg)](https://github.com/thesepix/SeAnimation/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/thesepix/SeAnimation?include_prereleases)](https://github.com/thesepix/SeAnimation/releases)
+
 Beat-synchrone Musik-Visuals für **Windows 11** (Python + OpenGL):
 Video-/Bild-Clips und generierte Effekte, bei denen jede sichtbare Änderung
 **im Takt der Musik** passiert (Frame-Step-Video, Beat-Envelope-Effekte).
@@ -15,8 +18,7 @@ automatisch als WASAPI-Loopback aufgenommen).
 
 ```powershell
 gh repo clone thesepix/SeAnimation   # privates Repo: gh übernimmt die Auth
-cd SeAnimation
-git checkout vibe/anforderungen-1ac69e
+cd SeAnimation                       # default branch: main
 pip install -r requirements.txt      # oder: pip install -e .
 python -m seanimation --selftest        # Beat-Pipeline ohne Audiohardware testen
 python -m seanimation --analyze --file <dein-track.flac>   # CLI: Datei durch die Beat-Pipeline
@@ -33,16 +35,16 @@ Hinweise:
 ## Schnellstart ohne Python (fertige Exe) — Ziel-PC braucht nichts installiert
 
 Die Windows-Exe wird automatisch per GitHub Actions gebaut (Workflow `ci`,
-Job `build-exe`, Läuft bei jedem Push/PR):
+Job `build-exe`, läuft bei jedem PR und per manuellem Dispatch):
 
-1. PR öffnen → Tab **Actions** → Lauf des PRs → Artifact **`SeAnimation-win64`** laden (enthält `SeAnimation.exe`)
+1. PR öffnen → Tab **Actions** → Lauf des PRs → Artifact **`SeAnimation-win64`** laden (enthält `SeAnimation-X.Y.Z.exe`)
 2. **Fallback** (wenn das Artifact wegen Account-Quota fehlt): die Exe liegt auf dem
    Branch **`dist-exe`** und lässt sich direkt im Browser laden:
    https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
-3. Testen — **kein Python/git/gh nötig**:
+3. Testen — **kein Python/git/gh nötig** (aktuell: v0.7.1):
    ```powershell
-   .\SeAnimation-0.3.0.exe --selftest
-   .\SeAnimation-0.3.0.exe --file <dein-track.flac> (Pfad egal)
+   .\SeAnimation-0.7.1.exe --selftest
+   .\SeAnimation-0.7.1.exe --file <dein-track.flac> (Pfad egal)
    ```
 
 ## Exe lokal bauen (einmalig Python 3.11+ von python.org nötig)
@@ -56,10 +58,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_exe.ps1
 ## Releases / Versionierung
 
 - SemVer in `seanimation/__init__.py` (`__version__`) und `pyproject.toml`; `SeAnimation-X.Y.Z.exe --version` (SemVer ohne "v"; Tag `vX.Y.Z` ↔ Datei `SeAnimation-X.Y.Z.exe).
-- **Der Dateiname trägt die Version**: `SeAnimation-0.3.0.exe` (SemVer aus `__version__`, ohne "v").
+- **Der Dateiname trägt die Version**: `SeAnimation-0.7.1.exe` (SemVer aus `__version__`, ohne "v").
 - Jeder Release = **annotated Tag `vX.Y.Z`** + GitHub Release (Workflow `release.yml` baut die Exe auf `windows-latest` und hängt sie als Asset an).
 - Exe-Download pro Release: Release-Asset `SeAnimation-X.Y.Z.exe` auf GitHub — Fallback (bei Artifact-Quota): Branch **`dist-exe`** →
-  - versioniert: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation-0.3.0.exe
+  - versioniert: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation-0.7.1.exe
   - immer neueste: https://github.com/thesepix/SeAnimation/raw/dist-exe/bin/SeAnimation.exe
 - Changelog: siehe ANFORDERUNGEN.md Abschnitt 10 (Entscheidungsprotokoll) + Release Notes.
 
@@ -69,8 +71,8 @@ Ohne Argumente startet die App mit **WASAPI-Loopback** (alles, was der PC abspie
 bzw. mit `--file` eine Datei in Echtzeit:
 
 ```powershell
-.\SeAnimation-0.4.0.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
-.\SeAnimation-0.7.0.exe --file <dein-track.mp3>
+.\SeAnimation-0.7.1.exe                 # live: Musik auf dem PC abspielen (z. B. Traktor-Ziel später)
+.\SeAnimation-0.7.1.exe --file <dein-track.mp3>
 ```
 
 - **Preview-Fenster (alles klickbar)**: BPM/Beat-Anzeige, **TAP-Button** (Taste **T**),
@@ -81,10 +83,15 @@ bzw. mit `--file` eine Datei in Echtzeit:
 - Clips (Bilder/Videos) liegen im Ordner **`media/` neben der Exe** (z. B.
   `C:\Desktop\SeAnimation\media\`) und werden beim Start gescannt
 
-## Entwicklung
+## Entwicklung & Mitwirken
 
-- Anforderungsänderungen und Code laufen über **Pull Requests** in diesem Repo
-  (Branch-Schema `vibe/<slug>-1ac69e`, Draft-PR zum Review).
+- Anforderungsänderungen und Code laufen über **Pull Requests** von `main`
+  (Branch-Schema `vibe/<slug>-1ac69e`, Draft-PR zum Review) — Details in
+  **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+- **KI-Agenten** (Claude, Copilot, …) lesen zuerst **[AGENTS.md](AGENTS.md)**
+  mit den verbindlichen Regeln für dieses Repo.
+- Issue-Templates (Bug/Feature) und PR-Template liegen unter `.github/`;
+  Abhängigkeiten aktualisiert Dependabot automatisch (`.github/dependabot.yml`).
 - Projektgerüst: Paket `seanimation/` mit den Modulen `audio`, `analysis`,
   `clock`, `library`, `render`, `ui` (siehe Architektur-Diagramm in
   ANFORDERUNGEN.md, Abschnitt 5).

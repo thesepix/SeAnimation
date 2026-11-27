@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Fertige Exe herunterladen (Releases)
+    url: https://github.com/thesepix/SeAnimation/releases
+    about: "Neueste SeAnimation-X.Y.Z.exe als Release-Asset (Fallback: Branch dist-exe -> bin/)"
+  - name: Projekt-Übersicht für externe KIs (PROJEKT.md)
+    url: https://raw.githubusercontent.com/thesepix/SeAnimation/main/PROJEKT.md
+    about: "Kurz-Zusammenfassung von Ziel und Architektur"
+  - name: Anforderungsdokument (ANFORDERUNGEN.md)
+    url: https://raw.githubusercontent.com/thesepix/SeAnimation/main/ANFORDERUNGEN.md
+    about: "Vollständige Anforderungen + Entscheidungsprotokoll"

@@ -1,0 +1,5 @@
+# Default owner for everything — PRs need review/merge by the repo owner.
+* @thesepix
+
+# CI/CD workflows and repo-standard files also belong to the owner.
+/.github/ @thesepix
