@@ -59,6 +59,7 @@ Test-Audio-Asset.
 | `prefetch=True` als Default in ClipPlayer | avcodec-Crash `fctx->async_lock failed` in sync-Tests | Default `prefetch=False`, App setzt `prefetch=True` |
 | WAV nur 8/16/32-bit | 24-bit WAV crashte | soundfile/libsndfile für `--file` (WAV/FLAC/MP3/OGG), WavFileSource als Fallback mit 24-bit |
 | `gh pr merge` / REST-API-Mutationen aus der Agent-Sandbox | `Merging via CLI is not allowed` / `Mutating GitHub API calls are not allowed` | Merge + Repo-Settings (Description/Topics/Ruleset) macht der User im Web-UI; Agent pusht Branches/Tags |
+| `requirements.txt` auf Sandbox-Mirror-Versionen gepinnt (numpy 2.5.5) | CI `build-exe` brach: `No matching distribution found for numpy==2.5.5` (existiert nicht auf echtem PyPI für py3.11) | Pins gegen echtes PyPI mit `pip install --dry-run --ignore-installed --index-url https://pypi.org/simple --python-version 3.11 --only-binary=:all: <pkg>` auflösen (max py3.11: numpy 2.4.6) |
 | pycaw `Activate(cls, ...)` / `Interface` statt `_iid_` | `TypeError: expected LP_GUID` | `Activate(IAudioClient._iid_, ...)` + `cast(..., POINTER(...))`, `GetMixFormat()` via `.contents`, `CoInitialize()` |
 
 ## Offene Punkte
