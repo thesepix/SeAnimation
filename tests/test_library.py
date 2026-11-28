@@ -140,16 +140,26 @@ class TestGUIText(unittest.TestCase):
 class TestEffects(unittest.TestCase):
     def test_mvp_effects(self):
         reg = EffectRegistry()
-        self.assertEqual(len(reg), len(EFFECTS_MVP))  # 7 Effekte (v0.6.0)
+        self.assertEqual(len(reg), len(EFFECTS_MVP))  # 14 Effekte (v0.8.0)
+        self.assertGreaterEqual(len(EFFECTS_MVP), 14)
         self.assertEqual(reg.get(0)["id"], "reactive_bg")
         self.assertEqual(reg.get(4)["id"], "clip_wobble")
         self.assertEqual(reg.by_id("beat_ring")["kind"], "ring")
         self.assertEqual(reg.by_id("clip_distort")["clip_kind"], "video")
         self.assertEqual(reg.get(len(EFFECTS_MVP))["id"], "reactive_bg")  # wrap
-        # alle clip_-Effekte haben ein clip_kind
+        # ids eindeutig, kinds gültig, alle clip_-Effekte haben ein clip_kind
+        ids = [e["id"] for e in EFFECTS_MVP]
+        self.assertEqual(len(ids), len(set(ids)))
         for e in EFFECTS_MVP:
             if e["kind"].startswith("clip_"):
                 self.assertIn(e["clip_kind"], ("video", "image"))
+            else:
+                self.assertIn(e["kind"], ("bg", "ring"))
+        # neue generative Modi (v0.8.0) vorhanden und eindeutig
+        bg_modes = [e["mode"] for e in EFFECTS_MVP if e["kind"] == "bg"]
+        self.assertEqual(sorted(bg_modes), [0, 1, 2, 3, 4])
+        for eid in ("sunburst", "tunnel", "plasma", "kaleido", "clip_glitch", "clip_pixel", "clip_invert"):
+            self.assertIn(eid, ids)
 
 
 if __name__ == "__main__":

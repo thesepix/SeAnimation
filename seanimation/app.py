@@ -229,8 +229,9 @@ class App:
         if symbol == key.SPACE:
             self.state.pending_effect_idx = (self._eff_index() + 1) % len(self.effects)
             return True
-        for i in range(9):  # Tasten 1-9
-            k = getattr(key, f"_{i + 1}", None)
+        keynames = [f"_{n}" for n in range(1, 10)] + ["_0"]  # Tasten 1-9, 0 = erste 10 Effekte
+        for i, kn in enumerate(keynames):
+            k = getattr(key, kn, None)
             if k is not None and symbol == k and i < len(self.effects):
                 self.state.pending_effect_idx = i
                 return True

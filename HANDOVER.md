@@ -24,8 +24,10 @@ Test-Audio-Asset.
 1. **Performance-Test durch den User mit v0.7.1/v0.8.0** — Datei-Modus
    (`SeAnimation-X.Y.Z.exe --file Vletrmx.mp3`, thread-los seit v0.7.1) und
    Live-Modus (Musik im externen Player, Loopback hört mit). Ergebnis: Konsolen-Log.
-2. **Effekt-Design verbessern** („die Effekte waren mies") — Shader in
-   `seanimation/render/shaders/` + Effekt-Liste in `render/effects.py`.
+2. **Effekt-Design** — läuft gerade in PR #8 (Branch `vibe/effekte-1ac69e`):
+   14 Effekte (neu: Sonnenstrahlen/Tunnel/Plasma/Kaleidoskop + Glitch/Pixel/Invert),
+   Tasten 1-9,0. Danach: Look der neuen Effekte vom User auf Win11 bewerten
+   (Shader-Parameter in `render/shaders/*.frag` nachjustieren).
 3. **Step 2: Traktor-Verbindung** — Traktor läuft auf einem separaten Win11-Laptop,
    Visuals auf dem Desktop-PC. Optionen: Netzwerk-Audio (z. B. VBAN/RTP →
    `NetworkSource` als AudioSource) und/oder Traktor-MIDI/OSC-Clock als exakte
@@ -57,6 +59,7 @@ Test-Audio-Asset.
 | `prefetch=True` als Default in ClipPlayer | avcodec-Crash `fctx->async_lock failed` in sync-Tests | Default `prefetch=False`, App setzt `prefetch=True` |
 | WAV nur 8/16/32-bit | 24-bit WAV crashte | soundfile/libsndfile für `--file` (WAV/FLAC/MP3/OGG), WavFileSource als Fallback mit 24-bit |
 | `gh pr merge` / REST-API-Mutationen aus der Agent-Sandbox | `Merging via CLI is not allowed` / `Mutating GitHub API calls are not allowed` | Merge + Repo-Settings (Description/Topics/Ruleset) macht der User im Web-UI; Agent pusht Branches/Tags |
+| `requirements.txt` auf Sandbox-Mirror-Versionen gepinnt (numpy 2.5.5) | CI `build-exe` brach: `No matching distribution found for numpy==2.5.5` (existiert nicht auf echtem PyPI für py3.11) | Pins gegen echtes PyPI mit `pip install --dry-run --ignore-installed --index-url https://pypi.org/simple --python-version 3.11 --only-binary=:all: <pkg>` auflösen (max py3.11: numpy 2.4.6) |
 | pycaw `Activate(cls, ...)` / `Interface` statt `_iid_` | `TypeError: expected LP_GUID` | `Activate(IAudioClient._iid_, ...)` + `cast(..., POINTER(...))`, `GetMixFormat()` via `.contents`, `CoInitialize()` |
 
 ## Offene Punkte

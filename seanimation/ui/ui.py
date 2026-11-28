@@ -146,7 +146,7 @@ class UI:
                 self.items.append((x, self.GRID_Y - 30, tex.width + 12, tex.height + 8, self._white_tex(g), (0.15, 0.15, 0.25, 0.8), ("page", delta)))
                 self.items.append((x + 6, self.GRID_Y - 26, tex.width, tex.height, tex, (1, 1, 1, 1), ("page", delta)))
         # Hinweiszeile
-        hint = "1-9 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende | Klick: Clip"
+        hint = "1-9,0 Effekt (erste 10) | Space nächster | T Tap | F Fullscreen | ESC Ende | Klick: Clip"
         tex = self._tex(g, "hint", text_rgba(hint, 12, (150, 150, 150, 255)))
         self.items.append((10, 10, tex.width, tex.height, tex, (1, 1, 1, 1), None))
 

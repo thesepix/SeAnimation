@@ -1,7 +1,9 @@
-# SeAnimation — gepinnte, getestete Versionen (Stand v0.8.0, siehe CHANGELOG.md).
+# SeAnimation — gepinnte Versionen (Stand v0.8.0).
+# Gegen echtes PyPI für Python 3.11 (Windows) aufgelöst — NICHT Sandbox-Mirror-Versionen pinning!
+# (numpy 2.5.5 existiert z. B. nicht auf PyPI -> CI brach; max für py3.11 ist 2.4.6)
 # Installation:  pip install -r requirements.txt     (Python 3.11, 64-bit)
 # pyproject.toml hält die kompatiblen Bereiche (>=) für die Paket-Metadaten.
-numpy==2.5.5
+numpy==2.4.6
 sounddevice==0.5.6
 soundfile==0.14.0
 opencv-python==5.1.0.95
