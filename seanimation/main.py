@@ -75,7 +75,7 @@ def main() -> None:
         "(Referenz-Screenshots f\u00fcr Doku/Tests; ohne --file wird ein Synth-Signal bei --bpm genutzt)",
     )
     parser.add_argument("--frames", type=int, default=120, help="Anzahl Frames f\u00fcr --shot (default 120 = 2 s bei 60 fps)")
-    parser.add_argument("--effect", type=int, default=0, help="Effekt-Index f\u00fcr --shot (0..6, siehe Effektliste in der GUI)")
+    parser.add_argument("--effect", type=int, default=0, help="Effekt-Index f\u00fcr --shot (0..13, siehe Effektliste in der GUI)")
     parser.add_argument("--size", default="1280x720", help="Aufl\u00f6sung f\u00fcr --shot, Format WxH (default 1280x720)")
     args = parser.parse_args()
 
@@ -148,7 +148,7 @@ def main() -> None:
     print(f"SeAnimation {__version__} – starte GUI "
           f"(Audio: {'Datei ' + args.audio_file if args.audio_file else 'WASAPI-Loopback (Was du hörst) — Musik im Player abspielen!'})")
     print(f"Medien-Ordner: {config.MEDIA_DIR}")
-    print("Tasten: 1-5 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende")
+    print("Tasten: 1-9,0 Effekt | Space nächster | T Tap | F Fullscreen | ESC Ende")
     from .app import run_app
 
     try:

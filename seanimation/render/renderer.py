@@ -194,9 +194,13 @@ class Renderer:
             _set(prog, "u_pulse", 1.0 if kind == "clip_image" else 0.0)
             _set(prog, "u_distort", 1.0 if kind == "clip_distort" else 0.0)
             _set(prog, "u_split", 1.0 if kind == "clip_split" else 0.0)
+            _set(prog, "u_glitch", 1.0 if kind == "clip_glitch" else 0.0)
+            _set(prog, "u_pixel", 1.0 if kind == "clip_pixel" else 0.0)
+            _set(prog, "u_invert", 1.0 if kind == "clip_invert" else 0.0)
             g.vao_clip.render(moderngl.TRIANGLES)
         else:
             prog = g.prog_bg
+            _set(prog, "u_mode", float(eff.get("mode", 0)))
             _set(prog, "u_res", (win.width, win.height))
             _set(prog, "u_time", now)
             _set(prog, "u_beat_phase", phase)

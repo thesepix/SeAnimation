@@ -4,7 +4,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung 
 Tag `vX.Y.Z` ↔ Release-Asset `SeAnimation-X.Y.Z.exe` (gebaut von `release.yml`,
 Fallback: Branch `dist-exe` → `bin/`).
 
-## [0.8.0] — unreleased (PR #3, Branch `vibe/handover-1ac69e`)
+## [0.8.0] — unreleased (PR #7 + PR #8, Branches `vibe/handover-1ac69e`, `vibe/effekte-1ac69e`)
 ### Added
 - `HANDOVER.md` (Übergabe-Dokument: aktuelle Aufgabe, letzter guter Stand, versucht/gescheitert, offene Punkte, Umgebungsnotizen)
 - `CHANGELOG.md` (diese Datei)
@@ -12,6 +12,7 @@ Fallback: Branch `dist-exe` → `bin/`).
 - `tools/make_test_asset.py` + `tests/assets/beat_124bpm.wav` (8 s Synth-Signal, exakt 124 BPM) + `tests/test_asset.py`
 - `--shot PFAD_PNG [--frames N] [--effect N] [--size WxH] [--file TRACK] [--bpm X]` — Headless-Render in unsichtbarem Fenster, speichert Frame als PNG (Referenz-Screenshots für Doku/KI; ohne `--file` Synth-Signal)
 - Gepinnte `requirements.txt` (getestete Versionen, siehe Header-Kommentar)
+- **14 Effekte** (statt 7, PR #8): neue generative Hintergründe Sonnenstrahlen, Tunnel-Zoom, Plasma, Kaleidoskop (`bg.frag` mit `u_mode`) + neue Clip-Effekte Glitch-Slices, Pixel-Puls, Invert-Flash (`clip.frag`); alle beat-reaktiv (Beat-Envelope/Phase/Kick). Tasten **1-9, 0** = erste 10 Effekte, Rest per Space/Maus
 ### Changed
 - `Renderer(..., visible=False, with_output=False)` für unsichtbares Einzelfenster (Shot-Modus)
 - README/AGENTS.md: Links auf HANDOVER/CHANGELOG, Check-Befehl, Shot-Modus

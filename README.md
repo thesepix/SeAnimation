@@ -76,7 +76,7 @@ bzw. mit `--file` eine Datei in Echtzeit:
 ```
 
 - **Preview-Fenster (alles klickbar)**: BPM/Beat-Anzeige, **TAP-Button** (Taste **T**),
-  Effektliste (Tasten **1–9**), **Thumbnail-Raster aller Clips aus `media/`** mit Seiten
+  Effektliste (Tasten **1-9, 0** — 14 Effekte, Rest per Space/Klick), **Thumbnail-Raster aller Clips aus `media/`** mit Seiten
   (Klick auf Thumbnail = Clip sofort aktiv, Wechsel quantisiert auf Beat)
 - **Ausgabe-Fenster**: randlos, Taste **F** = Vollbild — in OBS als Fensteraufnahme einbinden
 - **Space** = nächster Effekt (quantisiert auf Beat), Clip-Wechsel automatisch alle 4 Takte, **ESC** = Ende

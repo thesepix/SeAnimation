@@ -24,8 +24,10 @@ Test-Audio-Asset.
 1. **Performance-Test durch den User mit v0.7.1/v0.8.0** — Datei-Modus
    (`SeAnimation-X.Y.Z.exe --file Vletrmx.mp3`, thread-los seit v0.7.1) und
    Live-Modus (Musik im externen Player, Loopback hört mit). Ergebnis: Konsolen-Log.
-2. **Effekt-Design verbessern** („die Effekte waren mies") — Shader in
-   `seanimation/render/shaders/` + Effekt-Liste in `render/effects.py`.
+2. **Effekt-Design** — läuft gerade in PR #8 (Branch `vibe/effekte-1ac69e`):
+   14 Effekte (neu: Sonnenstrahlen/Tunnel/Plasma/Kaleidoskop + Glitch/Pixel/Invert),
+   Tasten 1-9,0. Danach: Look der neuen Effekte vom User auf Win11 bewerten
+   (Shader-Parameter in `render/shaders/*.frag` nachjustieren).
 3. **Step 2: Traktor-Verbindung** — Traktor läuft auf einem separaten Win11-Laptop,
    Visuals auf dem Desktop-PC. Optionen: Netzwerk-Audio (z. B. VBAN/RTP →
    `NetworkSource` als AudioSource) und/oder Traktor-MIDI/OSC-Clock als exakte
